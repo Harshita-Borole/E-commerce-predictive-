@@ -1,0 +1,74 @@
+{
+  "model": "XGBoost Regressor",
+  "target": "weekly revenue (delivered orders, price + freight)",
+  "reliable_window": "2017-01-01 to 2018-08-19",
+  "grain_comparison": {
+    "day": {
+      "points": 591,
+      "mean_revenue": 25694.421776649746,
+      "cv": 0.553717195391136
+    },
+    "week": {
+      "points": 85,
+      "mean_revenue": 178651.8031764706,
+      "cv": 0.4716722579567132
+    },
+    "month": {
+      "points": 20,
+      "mean_revenue": 759270.1635,
+      "cv": 0.4171381394896656
+    }
+  },
+  "eval_method": "walk-forward, one week ahead, retrained each step",
+  "metrics": {
+    "total_weeks": 85,
+    "usable_weeks_after_lags": 81,
+    "walk_forward_weeks": 12,
+    "mae": 38266.07786458334,
+    "rmse": 44712.44600391862,
+    "mape": 0.160933492572731,
+    "naive_baseline_mae": 32179.18500000001,
+    "naive_baseline_rmse": 39599.152866730205,
+    "naive_baseline_mape": 0.13370864782659406,
+    "beats_naive_baseline": false,
+    "weeks_model_beat_naive": 5
+  },
+  "top_features": {
+    "year": 0.2540000081062317,
+    "revenue_rollmean_4": 0.22750000655651093,
+    "time_index": 0.1876000016927719,
+    "revenue_lag_1": 0.1753000020980835,
+    "revenue_lag_4": 0.04800000041723251,
+    "week_of_year": 0.0414000004529953,
+    "month": 0.027499999850988388,
+    "revenue_lag_2": 0.024800000712275505,
+    "revenue_rollstd_4": 0.013899999670684338,
+    "quarter": 0.0
+  },
+  "forward_forecast": {
+    "weeks_ahead": 4,
+    "period": "2018-08-20 to 2018-09-10",
+    "next_period_forecast": 968705.69,
+    "prior_period_actual": 1173630.24,
+    "expected_growth_pct": -17.46,
+    "weekly_breakdown": [
+      {
+        "week_start": "2018-08-20",
+        "forecast_revenue": 232328.38
+      },
+      {
+        "week_start": "2018-08-27",
+        "forecast_revenue": 235962.05
+      },
+      {
+        "week_start": "2018-09-03",
+        "forecast_revenue": 235962.05
+      },
+      {
+        "week_start": "2018-09-10",
+        "forecast_revenue": 264453.22
+      }
+    ]
+  },
+  "honest_finding": "Not enough data for XGBoost to reliably beat a naive last-week forecast at this grain (~70-80 weekly points). Reported as-is rather than tuned until it wins one lucky split. The forward forecast above should be read the same way \u2014 indicative, not precise."
+}

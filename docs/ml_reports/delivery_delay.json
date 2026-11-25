@@ -1,0 +1,48 @@
+{
+  "model": "XGBoost Classifier",
+  "target": "is_late (delivered after order_estimated_delivery_date)",
+  "split": "chronological 80/20, not random \u2014 avoids peeking across time",
+  "metrics": {
+    "n_orders": 96470,
+    "n_features": 79,
+    "base_rate_late": 0.06773090079817559,
+    "test_size": 19294,
+    "test_late_rate": 0.03493313983621851,
+    "accuracy": 0.8141909401886597,
+    "roc_auc": 0.682023971543951,
+    "pr_auc": 0.06731563103220617,
+    "precision": 0.061992175744808906,
+    "recall": 0.3056379821958457,
+    "f1": 0.10307730798098574,
+    "scale_pos_weight": 12.169965870307168,
+    "best_iteration": 182
+  },
+  "top_features": {
+    "customer_state_SP": 0.12929999828338623,
+    "customer_state_RJ": 0.04470000043511391,
+    "purchase_month": 0.03970000147819519,
+    "seller_historical_late_rate": 0.03830000013113022,
+    "customer_state_MG": 0.03200000151991844,
+    "customer_state_PR": 0.029100000858306885,
+    "estimated_delivery_days": 0.02459999918937683,
+    "avg_distance_km": 0.022600000724196434,
+    "customer_state_BA": 0.02239999920129776,
+    "distinct_sellers": 0.022299999371170998
+  },
+  "excluded_leaky_columns": [
+    "order_delivered_carrier_date",
+    "order_delivered_customer_date",
+    "delivery_days",
+    "delay_days",
+    "delivery_hours",
+    "approval_hours",
+    "carrier_handover_days",
+    "order_approved_at"
+  ],
+  "risk_band_counts": {
+    "LOW": 13505,
+    "MEDIUM": 3859,
+    "HIGH": 1930
+  },
+  "why_not_accuracy": "3.5% of orders are late; predicting 'on time' for everyone scores high accuracy while catching zero delays. Recall/Precision/F1 are computed on the late class specifically; ROC-AUC is reported as the primary metric because it evaluates ranking quality independent of any one threshold."
+}

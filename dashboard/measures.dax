@@ -1,0 +1,164 @@
+Total Revenue =
+CALCULATE(
+    SUM ( fact_order_items[item_revenue] ),
+    fact_order_items[is_delivered] = 1
+)
+
+Product Revenue =
+CALCULATE ( SUM ( fact_order_items[price] ), fact_order_items[is_delivered] = 1 )
+
+Freight Revenue =
+CALCULATE ( SUM ( fact_order_items[freight_value] ), fact_order_items[is_delivered] = 1 )
+
+Freight % of Revenue =
+DIVIDE ( [Freight Revenue], [Total Revenue] )
+
+Total Orders = DISTINCTCOUNT ( fact_orders[order_key] )
+
+Delivered Orders =
+CALCULATE ( DISTINCTCOUNT ( fact_orders[order_key] ), fact_orders[is_delivered] = 1 )
+
+Items Sold =
+CALCULATE ( COUNTROWS ( fact_order_items ), fact_order_items[is_delivered] = 1 )
+
+Total Customers = DISTINCTCOUNT ( dim_customer[customer_key] )
+
+Active Customers =
+CALCULATE ( DISTINCTCOUNT ( fact_orders[customer_key] ), fact_orders[is_delivered] = 1 )
+
+Total Sellers = DISTINCTCOUNT ( dim_seller[seller_key] )
+
+Total Products = DISTINCTCOUNT ( dim_product[product_key] )
+
+Avg Order Value = DIVIDE ( [Total Revenue], [Delivered Orders] )
+
+Avg Item Price =
+CALCULATE ( AVERAGE ( fact_order_items[price] ), fact_order_items[is_delivered] = 1 )
+
+Items per Order = DIVIDE ( [Items Sold], [Delivered Orders] )
+
+Total Reviews = COUNTROWS ( fact_reviews )
+
+Avg Review Score = AVERAGE ( fact_reviews[review_score] )
+
+Negative Review % = AVERAGE ( fact_reviews[is_negative_review] )
+
+Positive Review % = AVERAGE ( fact_reviews[is_positive_review] )
+
+Reviews with Text % = AVERAGE ( fact_reviews[has_review_text] )
+
+Avg Delivery Days =
+CALCULATE ( AVERAGE ( fact_orders[delivery_days] ), fact_orders[is_delivered] = 1 )
+
+Avg Promised Days =
+CALCULATE ( AVERAGE ( fact_orders[estimated_delivery_days] ), fact_orders[is_delivered] = 1 )
+
+Avg Days vs Promise =
+CALCULATE ( AVERAGE ( fact_orders[delay_days] ), fact_orders[is_delivered] = 1 )
+
+Late Orders =
+CALCULATE (
+    COUNTROWS ( fact_orders ),
+    fact_orders[is_delivered] = 1,
+    fact_orders[is_late] = 1
+)
+
+Late Delivery % = DIVIDE ( [Late Orders], [Delivered Orders] )
+
+On-Time Delivery % = 1 - [Late Delivery %]
+
+Repeat Customers =
+CALCULATE ( COUNTROWS ( agg_customer_rfm ), agg_customer_rfm[frequency] > 1 )
+
+Repeat Customer % =
+DIVIDE ( [Repeat Customers], COUNTROWS ( agg_customer_rfm ) )
+
+Avg Customer Value = AVERAGE ( agg_customer_rfm[monetary] )
+
+Avg Customer Recency = AVERAGE ( agg_customer_rfm[recency_days] )
+
+Avg Orders per Customer = AVERAGE ( agg_customer_rfm[frequency] )
+
+Repeat Customer Value Multiple =
+VAR RepeatValue =
+    CALCULATE ( AVERAGE ( agg_customer_rfm[monetary] ), agg_customer_rfm[frequency] > 1 )
+VAR SingleValue =
+    CALCULATE ( AVERAGE ( agg_customer_rfm[monetary] ), agg_customer_rfm[frequency] = 1 )
+RETURN
+    DIVIDE ( RepeatValue, SingleValue )
+
+Dormant Sellers =
+CALCULATE ( COUNTROWS ( agg_seller_performance ), agg_seller_performance[is_dormant] = 1 )
+
+Active Sellers =
+CALCULATE ( COUNTROWS ( agg_seller_performance ), agg_seller_performance[is_dormant] = 0 )
+
+Dormant Seller % =
+DIVIDE ( [Dormant Sellers], COUNTROWS ( agg_seller_performance ) )
+
+Avg Seller Rating = AVERAGE ( agg_seller_performance[avg_review_score] )
+
+Avg Seller Late Rate = AVERAGE ( agg_seller_performance[late_rate] )
+
+Sellers at Risk =
+CALCULATE (
+    COUNTROWS ( agg_seller_performance ),
+    agg_seller_performance[total_orders] >= 20,
+    FILTER (
+        agg_seller_performance,
+        agg_seller_performance[avg_review_score] < 3.5
+            || agg_seller_performance[late_rate] > 0.15
+    )
+)
+
+Revenue PM = CALCULATE ( [Total Revenue], DATEADD ( dim_date[full_date], -1, MONTH ) )
+
+Revenue MoM % = DIVIDE ( [Total Revenue] - [Revenue PM], [Revenue PM] )
+
+Revenue PY = CALCULATE ( [Total Revenue], DATEADD ( dim_date[full_date], -1, YEAR ) )
+
+Revenue YoY % = DIVIDE ( [Total Revenue] - [Revenue PY], [Revenue PY] )
+
+Revenue Running Total =
+CALCULATE (
+    [Total Revenue],
+    FILTER ( ALLSELECTED ( dim_date ), dim_date[full_date] <= MAX ( dim_date[full_date] ) )
+)
+
+Revenue 3M Moving Avg =
+AVERAGEX (
+    DATESINPERIOD ( dim_date[full_date], MAX ( dim_date[full_date] ), -3, MONTH ),
+    [Total Revenue]
+)
+
+Data Quality =
+VAR m = SELECTEDVALUE ( dim_date[calendar_month] )
+RETURN
+    SWITCH (
+        TRUE (),
+        m < "2017-01", "Pilot phase - not comparable",
+        m > "2018-08", "Partial month - data cut off 2018-10-17",
+        "Reliable"
+    )
+
+Revenue (Reliable Window) =
+CALCULATE (
+    [Total Revenue],
+    KEEPFILTERS (
+        FILTER (
+            ALL ( dim_date[calendar_month] ),
+            dim_date[calendar_month] >= "2017-01"
+                && dim_date[calendar_month] <= "2018-08"
+        )
+    )
+)
+
+Is Reliable Month =
+VAR m = SELECTEDVALUE ( dim_date[calendar_month] )
+RETURN IF ( m >= "2017-01" && m <= "2018-08", 1, 0 )
+
+Revenue Card Title =
+"Revenue  ·  R$ " & FORMAT ( [Total Revenue] / 1000000, "0.0" ) & "M"
+
+Delivery Card Title =
+"On-time  ·  " & FORMAT ( [On-Time Delivery %], "0.0%" )

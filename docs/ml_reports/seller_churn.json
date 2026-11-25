@@ -1,0 +1,36 @@
+{
+  "model": "XGBoost Classifier",
+  "target": "is_dormant (seller, no sale in 90 days)",
+  "metrics": {
+    "n_sellers": 2970,
+    "n_features": 37,
+    "base_rate_dormant": 0.49663299663299665,
+    "test_size": 594,
+    "accuracy": 0.7272727272727273,
+    "roc_auc": 0.8176237174763334,
+    "pr_auc": 0.8040414716287182,
+    "precision": 0.7301038062283737,
+    "recall": 0.7152542372881356,
+    "f1": 0.7226027397260274,
+    "best_iteration": 95
+  },
+  "top_features": {
+    "total_orders": 0.25029999017715454,
+    "avg_delivery_days": 0.07720000296831131,
+    "distinct_products": 0.07670000195503235,
+    "total_items": 0.0723000019788742,
+    "late_orders": 0.0551999993622303,
+    "total_reviews": 0.05139999836683273,
+    "avg_review_score": 0.03500000014901161,
+    "late_rate": 0.03440000116825104,
+    "avg_freight": 0.03269999846816063,
+    "total_revenue": 0.030799999833106995
+  },
+  "excluded_leaky_columns": [
+    "days_since_last_sale",
+    "last_sale",
+    "first_sale",
+    "active_days",
+    "orders_per_active_month"
+  ]
+}

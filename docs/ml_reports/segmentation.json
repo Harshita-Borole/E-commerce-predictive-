@@ -1,0 +1,117 @@
+{
+  "model": "K-Means",
+  "classic_rfm_result": {
+    "k_selected": 4,
+    "silhouette": {
+      "3": 0.4589,
+      "4": 0.4926,
+      "5": 0.4152,
+      "6": 0.4302,
+      "7": 0.4333
+    },
+    "inertia": {
+      "3": 137742.9,
+      "4": 92094.6,
+      "5": 77430.0,
+      "6": 63553.4,
+      "7": 54113.0
+    },
+    "cluster_sizes_pct": {
+      "0": 40.1,
+      "1": 54.3,
+      "2": 3.0,
+      "3": 2.6
+    },
+    "verdict": "Largest cluster holds 54.3% of customers \u2014 recency and monetary carry enough real variation on their own that classic RFM does not collapse into one dominant blob the way the 97% frequency=1 finding alone might suggest. But cluster balance was never the actual limitation: R, F and M contain zero delivery or review information by construction, so no value of k lets this model ever find a delivery-quality segment \u2014 that requires features that were never given to it. Confirmed below by comparison: the extended feature set below finds a 6.6%-of-base cluster with a 99% late-delivery rate that classic RFM has no way to detect at any k."
+  },
+  "features": [
+    "recency_days",
+    "frequency",
+    "monetary",
+    "avg_order_value",
+    "avg_delivery_days",
+    "late_order_rate",
+    "avg_review_score",
+    "distinct_categories",
+    "tenure_days"
+  ],
+  "metrics": {
+    "n_customers": 93358,
+    "n_features": 9,
+    "k_selected": 4,
+    "silhouette_selected": 0.5723,
+    "silhouette_by_k": {
+      "3": 0.5635,
+      "4": 0.5723,
+      "5": 0.281,
+      "6": 0.3097,
+      "7": 0.3166
+    },
+    "inertia": 448011.66747123556
+  },
+  "cluster_profile": [
+    {
+      "cluster": 0,
+      "customers": 2878,
+      "avg_recency_days": 293.61,
+      "avg_monetary": 1073.87,
+      "avg_order_value": 1059.98,
+      "avg_delivery_days": 13.0,
+      "avg_late_rate": 0.04,
+      "avg_review_score": 4.07,
+      "avg_categories": 1.02,
+      "pct_repeat": 0.02,
+      "pct_of_base": 3.1,
+      "label": "At-Risk (Lapsed High Value)"
+    },
+    {
+      "cluster": 1,
+      "customers": 82468,
+      "avg_recency_days": 287.28,
+      "avg_monetary": 131.09,
+      "avg_order_value": 129.86,
+      "avg_delivery_days": 10.48,
+      "avg_late_rate": 0.0,
+      "avg_review_score": 4.29,
+      "avg_categories": 1.01,
+      "pct_repeat": 0.01,
+      "pct_of_base": 88.3,
+      "label": "Occasional Buyers"
+    },
+    {
+      "cluster": 2,
+      "customers": 1836,
+      "avg_recency_days": 247.13,
+      "avg_monetary": 308.77,
+      "avg_order_value": 143.3,
+      "avg_delivery_days": 11.57,
+      "avg_late_rate": 0.05,
+      "avg_review_score": 4.24,
+      "avg_categories": 1.95,
+      "pct_repeat": 0.99,
+      "pct_of_base": 2.0,
+      "label": "High-Value Loyal (Frequent Buyers)"
+    },
+    {
+      "cluster": 3,
+      "customers": 6176,
+      "avg_recency_days": 269.08,
+      "avg_monetary": 154.04,
+      "avg_order_value": 152.35,
+      "avg_delivery_days": 33.53,
+      "avg_late_rate": 0.99,
+      "avg_review_score": 2.26,
+      "avg_categories": 1.0,
+      "pct_repeat": 0.01,
+      "pct_of_base": 6.6,
+      "label": "Poor Delivery Experience"
+    }
+  ],
+  "cluster_labels": {
+    "0": "At-Risk (Lapsed High Value)",
+    "1": "Occasional Buyers",
+    "2": "High-Value Loyal (Frequent Buyers)",
+    "3": "Poor Delivery Experience"
+  },
+  "comparison": "Classic RFM (3 features): Largest cluster holds 54.3% of customers \u2014 recency and monetary carry enough real variation on their own that classic RFM does not collapse into one dominant blob the way the 97% frequency=1 finding alone might suggest. But cluster balance was never the actual limitation: R, F and M contain zero delivery or review information by construction, so no value of k lets this model ever find a delivery-quality segment \u2014 that requires features that were never given to it. Confirmed below by comparison: the extended feature set below finds a 6.6%-of-base cluster with a 99% late-delivery rate that classic RFM has no way to detect at any k. Extended (9 features): 4 clusters, silhouette 0.572, including a 6.6% cluster classic RFM has no features to ever detect."
+}

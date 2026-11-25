@@ -1,0 +1,657 @@
+<title>Olist Commerce Intelligence — Executive Dashboard</title>
+
+<style>
+:root{
+  color-scheme: light;
+  --ground:#EBEEF3; --surface:#FFFFFF; --surface-2:#F5F7FA; --raised:#FFFFFF;
+  --ink:#0D1219; --ink-2:#54606F; --ink-3:#8A96A6;
+  --line:#DCE2EA; --line-2:#EDF1F5;
+  --c1:#2A78D6; --c1-soft:#DCE9FA; --c2:#EB6834;
+  --good:#0A8F0A; --warn:#B67F00; --crit:#C7332F;
+  --good-bg:#E4F4E4; --warn-bg:#FBF0D8; --crit-bg:#FAE5E4;
+  --shadow:0 1px 2px rgba(13,18,25,.05), 0 4px 14px -6px rgba(13,18,25,.12);
+  --rail:#101720; --rail-ink:#C3CDDA; --rail-ink-2:#7D8BA0; --rail-line:#202A37;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#080B10; --surface:#141A23; --surface-2:#1A212B; --raised:#171E28;
+    --ink:#EDF1F6; --ink-2:#9AA7B8; --ink-3:#6B7889;
+    --line:#242D3A; --line-2:#1C242F;
+    --c1:#4A93E8; --c1-soft:#16283F; --c2:#E87346;
+    --good:#3FBF3F; --warn:#E5A81E; --crit:#E15B57;
+    --good-bg:#122A12; --warn-bg:#2E2410; --crit-bg:#2E1614;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px -8px rgba(0,0,0,.6);
+    --rail:#0C1119; --rail-ink:#AEBACA; --rail-ink-2:#6B7889; --rail-line:#1C2531;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#080B10; --surface:#141A23; --surface-2:#1A212B; --raised:#171E28;
+  --ink:#EDF1F6; --ink-2:#9AA7B8; --ink-3:#6B7889;
+  --line:#242D3A; --line-2:#1C242F;
+  --c1:#4A93E8; --c1-soft:#16283F; --c2:#E87346;
+  --good:#3FBF3F; --warn:#E5A81E; --crit:#E15B57;
+  --good-bg:#122A12; --warn-bg:#2E2410; --crit-bg:#2E1614;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px -8px rgba(0,0,0,.6);
+  --rail:#0C1119; --rail-ink:#AEBACA; --rail-ink-2:#6B7889; --rail-line:#1C2531;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums;}
+.mono{font-family:ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;font-size:.86em;}
+
+.app{display:grid; grid-template-columns:236px 1fr; min-height:100vh;}
+
+.rail{
+  background:var(--rail); color:var(--rail-ink);
+  display:flex; flex-direction:column; padding:22px 0 16px;
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+}
+.rail-brand{padding:0 22px 20px; border-bottom:1px solid var(--rail-line); margin-bottom:14px;}
+.rail-brand h1{
+  margin:0; font-size:15px; font-weight:650; letter-spacing:-.01em; color:#fff; line-height:1.3;
+}
+.rail-brand p{margin:6px 0 0; font-size:11.5px; color:var(--rail-ink-2); line-height:1.45;}
+.rail-sec{
+  padding:0 22px; margin:16px 0 8px; font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--rail-ink-2);
+}
+.tab{
+  display:flex; align-items:baseline; gap:10px; width:100%;
+  background:none; border:0; border-left:3px solid transparent;
+  padding:10px 22px; text-align:left; cursor:pointer;
+  color:var(--rail-ink); font:inherit; font-size:13.5px;
+}
+.tab:hover{background:rgba(255,255,255,.045);}
+.tab[aria-selected="true"]{
+  background:rgba(74,147,232,.14); border-left-color:var(--c1); color:#fff; font-weight:600;
+}
+.tab:focus-visible{outline:2px solid var(--c1); outline-offset:-2px;}
+.tab-n{font-size:10.5px; color:var(--rail-ink-2); font-variant-numeric:tabular-nums;}
+.tab[aria-selected="true"] .tab-n{color:var(--c1);}
+.rail-foot{
+  margin-top:auto; padding:16px 22px 0; border-top:1px solid var(--rail-line);
+  font-size:11px; color:var(--rail-ink-2); line-height:1.55;
+}
+.rail-foot b{color:var(--rail-ink); font-weight:600;}
+
+.main{padding:26px 30px 60px; max-width:1500px;}
+.page{display:none;}
+.page.on{display:block;}
+
+.phead{margin-bottom:22px;}
+.phead h2{margin:0; font-size:22px; font-weight:660; letter-spacing:-.02em;}
+.phead p{margin:6px 0 0; color:var(--ink-2); font-size:13.5px; max-width:76ch;}
+
+.grid{display:grid; gap:16px; grid-template-columns:repeat(12,1fr);}
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:18px 18px 16px; box-shadow:var(--shadow); min-width:0;
+}
+.card > h3{
+  margin:0 0 2px; font-size:13.5px; font-weight:640; letter-spacing:-.005em;
+}
+.card > .sub{margin:0 0 16px; font-size:11.5px; color:var(--ink-3); line-height:1.5;}
+
+.kpis{display:grid; gap:12px; grid-template-columns:repeat(6,1fr); margin-bottom:18px;}
+.kpi{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:14px 15px; box-shadow:var(--shadow); position:relative; overflow:hidden;
+}
+.kpi::before{content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--c1);}
+.kpi.good::before{background:var(--good);} .kpi.warn::before{background:var(--warn);}
+.kpi.crit::before{background:var(--crit);} .kpi.alt::before{background:var(--c2);}
+.kpi .lab{
+  font-size:10px; font-weight:700; letter-spacing:.085em; text-transform:uppercase;
+  color:var(--ink-3); display:block; margin-bottom:7px;
+}
+.kpi .val{font-size:25px; font-weight:660; letter-spacing:-.025em; line-height:1.05; display:block;}
+.kpi .note{font-size:11px; color:var(--ink-3); margin-top:5px; display:block;}
+
+.bars{display:flex; flex-direction:column; gap:9px;}
+.bar-row{display:grid; grid-template-columns:minmax(84px,auto) 1fr auto; gap:12px; align-items:center;}
+.bar-lab{font-size:12.5px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.bar-track{background:var(--line-2); border-radius:3px; height:16px; position:relative;}
+.bar-fill{height:100%; border-radius:3px; background:var(--c1); min-width:2px;}
+.bar-val{font-size:12.5px; font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums;}
+
+.tw{overflow-x:auto; margin:0 -18px -16px; padding:0 18px 4px;}
+table{border-collapse:collapse; width:100%; font-size:12.5px;}
+th{
+  text-align:left; font-size:10px; font-weight:700; letter-spacing:.075em;
+  text-transform:uppercase; color:var(--ink-3); padding:0 12px 8px 0;
+  border-bottom:1px solid var(--line); white-space:nowrap;
+}
+td{padding:8px 12px 8px 0; border-bottom:1px solid var(--line-2); white-space:nowrap;}
+tbody tr:last-child td{border-bottom:0;}
+th.r,td.r{text-align:right; padding-right:0;}
+tbody tr:hover{background:var(--surface-2);}
+
+.pill{
+  display:inline-block; padding:2px 8px; border-radius:20px; font-size:10.5px;
+  font-weight:650; letter-spacing:.01em; white-space:nowrap;
+}
+.p-good{background:var(--good-bg); color:var(--good);}
+.p-warn{background:var(--warn-bg); color:var(--warn);}
+.p-crit{background:var(--crit-bg); color:var(--crit);}
+.p-mute{background:var(--line-2); color:var(--ink-3);}
+
+.chart{width:100%; height:auto; display:block; overflow:visible;}
+.gl{stroke:var(--line); stroke-width:1; vector-effect:non-scaling-stroke;}
+.ax{fill:var(--ink-3); font-size:11px; font-family:inherit;}
+.ser{fill:none; stroke-width:2; vector-effect:non-scaling-stroke;}
+.dot{stroke-width:2; vector-effect:non-scaling-stroke;}
+.band{fill:var(--line-2);}
+.bandtx{fill:var(--ink-3); font-size:10.5px;}
+
+.callout{
+  border-left:3px solid var(--c1); background:var(--c1-soft);
+  padding:13px 16px; border-radius:0 8px 8px 0; font-size:13px; line-height:1.6;
+}
+.callout.warnc{border-left-color:var(--warn); background:var(--warn-bg);}
+.callout b{font-weight:660;}
+.legend{display:flex; gap:16px; flex-wrap:wrap; font-size:11.5px; color:var(--ink-2); margin-top:12px;}
+.legend span{display:flex; align-items:center; gap:6px;}
+.sw{width:11px; height:11px; border-radius:2px; flex:none;}
+
+.hm{display:grid; grid-template-columns:auto repeat(5,1fr); gap:3px; font-size:11px;}
+.hm-c{
+  aspect-ratio:1.7; border-radius:3px; display:flex; align-items:center;
+  justify-content:center; font-weight:600; font-variant-numeric:tabular-nums; font-size:11px;
+}
+.hm-h{color:var(--ink-3); font-size:10px; font-weight:700; letter-spacing:.06em;
+  display:flex; align-items:center; justify-content:center; text-transform:uppercase;}
+
+.c12{grid-column:span 12;} .c8{grid-column:span 8;} .c7{grid-column:span 7;}
+.c6{grid-column:span 6;} .c5{grid-column:span 5;} .c4{grid-column:span 4;}
+
+@media (max-width:1180px){
+  .kpis{grid-template-columns:repeat(3,1fr);}
+  .c8,.c7,.c6,.c5,.c4{grid-column:span 12;}
+}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;}
+  .rail{position:static; height:auto; flex-direction:column;}
+  .main{padding:20px 16px 40px;}
+  .kpis{grid-template-columns:repeat(2,1fr);}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important;}}
+</style>
+
+<div class="app">
+  <nav class="rail">
+    <div class="rail-brand">
+      <h1>Olist Commerce Intelligence</h1>
+      <p>Brazilian marketplace · Sep 2016 – Oct 2018</p>
+    </div>
+    <div class="rail-sec">Dashboard pages</div>
+    <button class="tab" role="tab" aria-selected="true"  data-page="p1"><span class="tab-n">01</span> Executive</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="p2"><span class="tab-n">02</span> Customers</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="p3"><span class="tab-n">03</span> Products &amp; Sellers</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="p4"><span class="tab-n">04</span> Operations</button>
+    <div class="rail-foot">
+      Sourced from <b>ecommerce_dw</b><br>
+      MySQL star schema · 5 dimensions, 4 facts<br>
+      Revenue reconciles to <b>R$&nbsp;15,419,773.75</b>
+    </div>
+  </nav>
+
+  <main class="main">
+    <section class="page on" id="p1">
+      <div class="phead">
+        <h2>Executive Dashboard</h2>
+        <p>Headline performance across the full marketplace. Revenue counts <em>price + freight on
+        delivered orders only</em> — the same definition used by the SQL layer, the ML features and Power BI.</p>
+      </div>
+      <div class="kpis" id="k1"></div>
+      <div class="grid">
+        <div class="card c7">
+          <h3>Revenue trend</h3>
+          <p class="sub">Shaded windows are not comparable — Olist's pilot phase on the left (Nov 2016 has zero revenue), the truncated final month on the right (data stops 17 Oct 2018).</p>
+          <div id="c-rev"></div>
+        </div>
+        <div class="card c5">
+          <h3>Orders trend</h3>
+          <p class="sub">Plotted separately from revenue rather than on a second axis — two scales on one chart invent a relationship the data does not contain.</p>
+          <div id="c-ord"></div>
+        </div>
+        <div class="card c5">
+          <h3>Revenue by category</h3>
+          <p class="sub">Top 10 of 74 categories.</p>
+          <div id="c-cat"></div>
+        </div>
+        <div class="card c7">
+          <h3>Top products by revenue</h3>
+          <p class="sub">Product IDs truncated to 10 characters for display.</p>
+          <div class="tw"><table id="t-prod"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="p2">
+      <div class="phead">
+        <h2>Customer Intelligence</h2>
+        <p>Segmentation and retention, keyed on <span class="mono">customer_unique_id</span> — the person — not
+        <span class="mono">customer_id</span>, which Olist re-issues for every order.</p>
+      </div>
+      <div class="kpis" id="k2"></div>
+      <div class="grid">
+        <div class="card c12">
+          <div class="callout warnc">
+            <b>3.0% repeat rate is real, not a broken metric.</b> Olist is a one-and-done marketplace:
+            90,557 of 93,358 customers order exactly once. Repeat buyers are worth <b>1.9×</b> more
+            (R$&nbsp;308.53 vs R$&nbsp;160.73 lifetime value), so retention is the opportunity — but customer
+            churn cannot be modelled here, which is why the ML layer targets <b>seller</b> churn instead.
+          </div>
+        </div>
+        <div class="card c6">
+          <h3>Customers by segment</h3>
+          <p class="sub">RFM segments. Frequency is near-constant in this dataset, so segments lean on recency, monetary value and delivery experience.</p>
+          <div id="c-seg"></div>
+        </div>
+        <div class="card c6">
+          <h3>Revenue by segment</h3>
+          <p class="sub">Where the money actually sits — not where the customers do.</p>
+          <div id="c-segrev"></div>
+        </div>
+        <div class="card c5">
+          <h3>Purchase frequency</h3>
+          <p class="sub">Orders placed per customer.</p>
+          <div id="c-freq"></div>
+        </div>
+        <div class="card c7">
+          <h3>RFM distribution</h3>
+          <p class="sub">Customers by recency score (rows) and monetary score (columns). 5 = best.</p>
+          <div id="c-rfm"></div>
+        </div>
+        <div class="card c12">
+          <h3>Revenue by state</h3>
+          <p class="sub">Top 12 of 27 states.</p>
+          <div class="tw"><table id="t-state"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="p3">
+      <div class="phead">
+        <h2>Product &amp; Seller Performance</h2>
+        <p>Commercial performance placed beside service quality. Revenue alone is a vanity ranking —
+        review score and late rate are what make a seller list actionable.</p>
+      </div>
+      <div class="kpis" id="k3"></div>
+      <div class="grid">
+        <div class="card c6">
+          <h3>Seller revenue concentration</h3>
+          <p class="sub">Sellers grouped into deciles by revenue. Decile 1 is the top 10%.</p>
+          <div id="c-dec"></div>
+        </div>
+        <div class="card c6">
+          <h3>Category ratings</h3>
+          <p class="sub">Best and worst rated categories with at least 300 reviewed orders.</p>
+          <div id="c-catrate"></div>
+        </div>
+        <div class="card c12">
+          <h3>Top sellers</h3>
+          <p class="sub">Ranked by revenue, shown with the service metrics that decide whether that revenue is safe.</p>
+          <div class="tw"><table id="t-sell"></table></div>
+        </div>
+        <div class="card c12">
+          <h3>Worst-performing products</h3>
+          <p class="sub">Minimum 20 units sold. Without that floor this table fills with products that sold once and received one 1★ review — a sample of one, not a quality problem.</p>
+          <div class="tw"><table id="t-worst"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="p4">
+      <div class="phead">
+        <h2>Operations &amp; Delivery</h2>
+        <p>Delivery performance and what it costs. This page carries the finding the whole platform is
+        built on.</p>
+      </div>
+      <div class="kpis" id="k4"></div>
+      <div class="grid">
+        <div class="card c12">
+          <h3>What a late delivery costs</h3>
+          <p class="sub">Negative-review rate and average score by delivery outcome. Two charts on one shared axis rather than one dual-axis chart, so neither scale distorts the other.</p>
+          <div id="c-delay"></div>
+          <div class="callout" style="margin-top:16px">
+            <b>Delivery risk is revenue risk.</b> Negative reviews climb from <b>8.9%</b> when an order
+            arrives 10+ days early to <b>80.0%</b> when it is 8–15 days late — monotonically, across
+            95,824 reviewed orders. A late delivery costs roughly <b>2 full stars</b>. This is why the
+            platform predicts delays before they happen rather than reporting them afterwards.
+          </div>
+        </div>
+        <div class="card c5">
+          <h3>Delivery time by region</h3>
+          <p class="sub">Average days from purchase to delivery.</p>
+          <div id="c-reg"></div>
+        </div>
+        <div class="card c7">
+          <h3>Late-delivery rate over time</h3>
+          <p class="sub">Share of delivered orders arriving after the promised date.</p>
+          <div id="c-late"></div>
+        </div>
+        <div class="card c12">
+          <h3>Delivery performance by state</h3>
+          <p class="sub">States with at least 200 delivered orders, slowest first.</p>
+          <div class="tw"><table id="t-del"></table></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const DATA = {"generated_from":"ecommerce_dw","reliable_window":{"from":"2017-01","to":"2018-08"},"kpis":{"total_revenue":15419773.75,"total_orders":99441,"delivered_orders":96478,"total_customers":96096,"total_sellers":3095,"total_products":32951,"avg_order_value":159.83,"avg_review_score":4.09,"on_time_pct":93.23,"avg_delivery_days":12.1,"repeat_rate_pct":3.0,"negative_review_pct":14.69},"monthly_trend":[{"calendar_month":"2016-09","orders":1,"customers":1,"revenue":143.46},{"calendar_month":"2016-10","orders":265,"customers":262,"revenue":46490.66},{"calendar_month":"2016-12","orders":1,"customers":1,"revenue":19.62},{"calendar_month":"2017-01","orders":750,"customers":718,"revenue":127482.37},{"calendar_month":"2017-02","orders":1653,"customers":1630,"revenue":271239.32},{"calendar_month":"2017-03","orders":2546,"customers":2508,"revenue":414330.95},{"calendar_month":"2017-04","orders":2303,"customers":2274,"revenue":390812.4},{"calendar_month":"2017-05","orders":3546,"customers":3479,"revenue":566851.4},{"calendar_month":"2017-06","orders":3135,"customers":3076,"revenue":490050.37},{"calendar_month":"2017-07","orders":3872,"customers":3802,"revenue":566299.08},{"calendar_month":"2017-08","orders":4193,"customers":4114,"revenue":645832.36},{"calendar_month":"2017-09","orders":4150,"customers":4083,"revenue":701077.49},{"calendar_month":"2017-10","orders":4478,"customers":4417,"revenue":751117.01},{"calendar_month":"2017-11","orders":7289,"customers":7183,"revenue":1153364.2},{"calendar_month":"2017-12","orders":5513,"customers":5450,"revenue":843078.29},{"calendar_month":"2018-01","orders":7069,"customers":6974,"revenue":1077887.46},{"calendar_month":"2018-02","orders":6555,"customers":6400,"revenue":966168.41},{"calendar_month":"2018-03","orders":7003,"customers":6914,"revenue":1120598.24},{"calendar_month":"2018-04","orders":6798,"customers":6744,"revenue":1132878.93},{"calendar_month":"2018-05","orders":6749,"customers":6693,"revenue":1128774.52},{"calendar_month":"2018-06","orders":6099,"customers":6061,"revenue":1011978.29},{"calendar_month":"2018-07","orders":6159,"customers":6100,"revenue":1027807.28},{"calendar_month":"2018-08","orders":6351,"customers":6310,"revenue":985491.64}],"late_trend":[{"calendar_month":"2016-09","delivered_orders":1,"late_pct":100.0},{"calendar_month":"2016-10","delivered_orders":265,"late_pct":0.75},{"calendar_month":"2016-12","delivered_orders":1,"late_pct":0.0},{"calendar_month":"2017-01","delivered_orders":750,"late_pct":2.93},{"calendar_month":"2017-02","delivered_orders":1653,"late_pct":2.96},{"calendar_month":"2017-03","delivered_orders":2546,"late_pct":4.56},{"calendar_month":"2017-04","delivered_orders":2303,"late_pct":6.56},{"calendar_month":"2017-05","delivered_orders":3546,"late_pct":2.99},{"calendar_month":"2017-06","delivered_orders":3135,"late_pct":3.03},{"calendar_month":"2017-07","delivered_orders":3872,"late_pct":2.79},{"calendar_month":"2017-08","delivered_orders":4193,"late_pct":2.91},{"calendar_month":"2017-09","delivered_orders":4150,"late_pct":4.39},{"calendar_month":"2017-10","delivered_orders":4478,"late_pct":4.18},{"calendar_month":"2017-11","delivered_orders":7289,"late_pct":12.4},{"calendar_month":"2017-12","delivered_orders":5513,"late_pct":7.46},{"calendar_month":"2018-01","delivered_orders":7069,"late_pct":5.7},{"calendar_month":"2018-02","delivered_orders":6555,"late_pct":14.13},{"calendar_month":"2018-03","delivered_orders":7003,"late_pct":18.96},{"calendar_month":"2018-04","delivered_orders":6798,"late_pct":4.5},{"calendar_month":"2018-05","delivered_orders":6749,"late_pct":6.56},{"calendar_month":"2018-06","delivered_orders":6099,"late_pct":1.16},{"calendar_month":"2018-07","delivered_orders":6159,"late_pct":3.38},{"calendar_month":"2018-08","delivered_orders":6351,"late_pct":6.19}],"category_revenue":[{"product_category":"health_beauty","items_sold":9465,"revenue":1412089.53,"avg_price":130.28},{"product_category":"watches_gifts","items_sold":5859,"revenue":1264333.12,"avg_price":199.04},{"product_category":"bed_bath_table","items_sold":10953,"revenue":1225209.26,"avg_price":93.44},{"product_category":"sports_leisure","items_sold":8431,"revenue":1118256.91,"avg_price":113.25},{"product_category":"computers_accessories","items_sold":7644,"revenue":1032723.77,"avg_price":116.26},{"product_category":"furniture_decor","items_sold":8160,"revenue":880329.92,"avg_price":87.25},{"product_category":"housewares","items_sold":6795,"revenue":758392.25,"avg_price":90.6},{"product_category":"cool_stuff","items_sold":3718,"revenue":691680.89,"avg_price":164.12},{"product_category":"auto","items_sold":4140,"revenue":669454.75,"avg_price":139.85},{"product_category":"garden_tools","items_sold":4268,"revenue":567145.68,"avg_price":110.24}],"category_rating":[{"product_category":"books_general_interest","reviewed_orders":533,"avg_review_score":4.51,"late_pct":6.02},{"product_category":"luggage_accessories","reviewed_orders":1073,"avg_review_score":4.35,"late_pct":4.1},{"product_category":"food","reviewed_orders":487,"avg_review_score":4.26,"late_pct":6.98},{"product_category":"stationery","reviewed_orders":2451,"avg_review_score":4.25,"late_pct":6.73},{"product_category":"pet_shop","reviewed_orders":1915,"avg_review_score":4.22,"late_pct":4.86},{"product_category":"perfumery","reviewed_orders":3329,"avg_review_score":4.22,"late_pct":6.46},{"product_category":"small_appliances","reviewed_orders":653,"avg_review_score":4.22,"late_pct":4.44},{"product_category":"musical_instruments","reviewed_orders":645,"avg_review_score":4.22,"late_pct":7.44},{"product_category":"home_appliances","reviewed_orders":751,"avg_review_score":4.22,"late_pct":4.53},{"product_category":"toys","reviewed_orders":3999,"avg_review_score":4.21,"late_pct":6.13},{"product_category":"cool_stuff","reviewed_orders":3689,"avg_review_score":4.2,"late_pct":5.75},{"product_category":"health_beauty","reviewed_orders":9402,"avg_review_score":4.19,"late_pct":7.38},{"product_category":"fashion_bags_accessories","reviewed_orders":1975,"avg_review_score":4.19,"late_pct":5.27},{"product_category":"sports_leisure","reviewed_orders":8378,"avg_review_score":4.17,"late_pct":6.24},{"product_category":"consoles_games","reviewed_orders":1079,"avg_review_score":4.14,"late_pct":5.56},{"product_category":"auto","reviewed_orders":4099,"avg_review_score":4.12,"late_pct":6.98},{"product_category":"drinks","reviewed_orders":361,"avg_review_score":4.12,"late_pct":4.43},{"product_category":"housewares","reviewed_orders":6756,"avg_review_score":4.11,"late_pct":4.9},{"product_category":"construction_tools_construction","reviewed_orders":911,"avg_review_score":4.09,"late_pct":6.15},{"product_category":"baby","reviewed_orders":2959,"avg_review_score":4.08,"late_pct":7.54},{"product_category":"garden_tools","reviewed_orders":4240,"avg_review_score":4.08,"late_pct":6.46},{"product_category":"electronics","reviewed_orders":2710,"avg_review_score":4.07,"late_pct":7.56},{"product_category":"watches_gifts","reviewed_orders":5815,"avg_review_score":4.07,"late_pct":7.07},{"product_category":"market_place","reviewed_orders":303,"avg_review_score":4.07,"late_pct":3.63},{"product_category":"computers_accessories","reviewed_orders":7608,"avg_review_score":3.99,"late_pct":6.36},{"product_category":"telephony","reviewed_orders":4404,"avg_review_score":3.99,"late_pct":6.9},{"product_category":"home_construction","reviewed_orders":592,"avg_review_score":3.96,"late_pct":5.91},{"product_category":"furniture_decor","reviewed_orders":8080,"avg_review_score":3.95,"late_pct":6.92},{"product_category":"unknown","reviewed_orders":1525,"avg_review_score":3.94,"late_pct":7.48},{"product_category":"furniture_living_room","reviewed_orders":490,"avg_review_score":3.93,"late_pct":6.73},{"product_category":"bed_bath_table","reviewed_orders":10831,"avg_review_score":3.92,"late_pct":6.89},{"product_category":"home_confort","reviewed_orders":427,"avg_review_score":3.85,"late_pct":9.37},{"product_category":"audio","reviewed_orders":358,"avg_review_score":3.84,"late_pct":11.45},{"product_category":"office_furniture","reviewed_orders":1654,"avg_review_score":3.52,"late_pct":7.92}],"top_products":[{"product":"bb50f2e236","product_category":"health_beauty","units_sold":194,"revenue":67258.03},{"product":"d1c427060a","product_category":"computers_accessories","units_sold":332,"revenue":58957.31},{"product":"6cdd538434","product_category":"health_beauty","units_sold":153,"revenue":57933.73},{"product":"99a4788cb2","product_category":"bed_bath_table","units_sold":477,"revenue":49907.5},{"product":"3dd2a17168","product_category":"computers_accessories","units_sold":272,"revenue":47876.06},{"product":"d6160fb787","product_category":"computers","units_sold":33,"revenue":47314.18},{"product":"aca2eb7d00","product_category":"furniture_decor","units_sold":520,"revenue":44197.75},{"product":"5f504b3a1c","product_category":"cool_stuff","units_sold":63,"revenue":41725.81},{"product":"25c38557cf","product_category":"baby","units_sold":38,"revenue":40311.95},{"product":"53b36df67e","product_category":"watches_gifts","units_sold":321,"revenue":39713.49}],"worst_products":[{"product":"ad4b5def91","product_category":"computers_accessories","units_sold":22,"avg_review_score":1.55,"late_pct":31.8},{"product":"cd46a88554","product_category":"computers_accessories","units_sold":30,"avg_review_score":1.83,"late_pct":0.0},{"product":"ee3d532c8a","product_category":"computers_accessories","units_sold":32,"avg_review_score":1.88,"late_pct":9.4},{"product":"b1d207586f","product_category":"unknown","units_sold":47,"avg_review_score":1.91,"late_pct":10.6},{"product":"0a9bdadab1","product_category":"furniture_decor","units_sold":22,"avg_review_score":2.36,"late_pct":0.0},{"product":"89b121bee2","product_category":"computers_accessories","units_sold":63,"avg_review_score":2.49,"late_pct":9.5},{"product":"43ee885610","product_category":"furniture_decor","units_sold":20,"avg_review_score":2.55,"late_pct":15.0},{"product":"812f428f67","product_category":"furniture_decor","units_sold":22,"avg_review_score":2.55,"late_pct":0.0},{"product":"7b35ccd93a","product_category":"sports_leisure","units_sold":22,"avg_review_score":2.68,"late_pct":9.1},{"product":"25c38557cf","product_category":"baby","units_sold":37,"avg_review_score":2.68,"late_pct":21.6}],"segments":[{"segment":"Recent High-Value","customers":14509,"revenue":4382610.68,"avg_value":302.06,"avg_recency_days":139.0,"avg_review":4.13},{"segment":"At-Risk High-Value","customers":13668,"revenue":4210984.74,"avg_value":308.09,"avg_recency_days":442.0,"avg_review":4.13},{"segment":"Occasional","customers":18118,"revenue":2739487.48,"avg_value":151.2,"avg_recency_days":269.0,"avg_review":4.01},{"segment":"Lapsed","customers":22426,"revenue":1630429.12,"avg_value":72.7,"avg_recency_days":444.0,"avg_review":4.2},{"segment":"Recent","customers":21836,"revenue":1592074.27,"avg_value":72.91,"avg_recency_days":138.0,"avg_review":4.25},{"segment":"Champions","customers":2239,"revenue":809108.39,"avg_value":361.37,"avg_recency_days":263.0,"avg_review":4.19},{"segment":"Loyal","customers":562,"revenue":55079.07,"avg_value":98.01,"avg_recency_days":288.0,"avg_review":4.27}],"frequency_dist":[{"orders_placed":1,"customers":90557,"revenue":14555586.29},{"orders_placed":2,"customers":2573,"revenue":748811.57},{"orders_placed":3,"customers":181,"revenue":78333.95},{"orders_placed":4,"customers":28,"revenue":22086.25},{"orders_placed":5,"customers":9,"revenue":6607.63},{"orders_placed":6,"customers":5,"revenue":3455.56},{"orders_placed":7,"customers":3,"revenue":2840.56},{"orders_placed":9,"customers":1,"revenue":1172.67},{"orders_placed":15,"customers":1,"revenue":879.27}],"rfm_distribution":[{"r_score":1,"m_score":1,"customers":3885},{"r_score":1,"m_score":2,"customers":3936},{"r_score":1,"m_score":3,"customers":3687},{"r_score":1,"m_score":4,"customers":3394},{"r_score":1,"m_score":5,"customers":3703},{"r_score":2,"m_score":1,"customers":3537},{"r_score":2,"m_score":2,"customers":3974},{"r_score":2,"m_score":3,"customers":3643},{"r_score":2,"m_score":4,"customers":3587},{"r_score":2,"m_score":5,"customers":3730},{"r_score":3,"m_score":1,"customers":3904},{"r_score":3,"m_score":2,"customers":3654},{"r_score":3,"m_score":3,"customers":3740},{"r_score":3,"m_score":4,"customers":3856},{"r_score":3,"m_score":5,"customers":3569},{"r_score":4,"m_score":1,"customers":3624},{"r_score":4,"m_score":2,"customers":3547},{"r_score":4,"m_score":3,"customers":3825},{"r_score":4,"m_score":4,"customers":3934},{"r_score":4,"m_score":5,"customers":3827},{"r_score":5,"m_score":1,"customers":3722},{"r_score":5,"m_score":2,"customers":3560},{"r_score":5,"m_score":3,"customers":3777},{"r_score":5,"m_score":4,"customers":3900},{"r_score":5,"m_score":5,"customers":3843}],"state_revenue":[{"state":"SP","region":"Sudeste","orders":40500,"revenue":5770818.32},{"state":"RJ","region":"Sudeste","orders":12344,"revenue":2054390.29},{"state":"MG","region":"Sudeste","orders":11352,"revenue":1818672.82},{"state":"RS","region":"Sul","orders":5347,"revenue":861722.86},{"state":"PR","region":"Sul","orders":4923,"revenue":781958.76},{"state":"SC","region":"Sul","orders":3547,"revenue":594551.58},{"state":"BA","region":"Nordeste","orders":3256,"revenue":591088.74},{"state":"DF","region":"Centro-Oeste","orders":2079,"revenue":345375.63},{"state":"GO","region":"Centro-Oeste","orders":1960,"revenue":335183.38},{"state":"ES","region":"Sudeste","orders":1994,"revenue":317524.68},{"state":"PE","region":"Nordeste","orders":1596,"revenue":309008.29},{"state":"CE","region":"Nordeste","orders":1281,"revenue":266701.31},{"state":"PA","region":"Norte","orders":946,"revenue":212023.57},{"state":"MT","region":"Centro-Oeste","orders":886,"revenue":181323.66},{"state":"MA","region":"Nordeste","orders":716,"revenue":147485.96},{"state":"PB","region":"Nordeste","orders":515,"revenue":137529.57},{"state":"MS","region":"Centro-Oeste","orders":700,"revenue":134179.21},{"state":"PI","region":"Nordeste","orders":476,"revenue":105178.19},{"state":"RN","region":"Nordeste","orders":474,"revenue":100714.78},{"state":"AL","region":"Nordeste","orders":397,"revenue":94172.49},{"state":"SE","region":"Nordeste","orders":338,"revenue":70696.88},{"state":"TO","region":"Norte","orders":274,"revenue":60007.37},{"state":"RO","region":"Norte","orders":244,"revenue":57123.28},{"state":"AM","region":"Norte","orders":145,"revenue":27585.47},{"state":"AC","region":"Norte","orders":80,"revenue":19575.33},{"state":"AP","region":"Norte","orders":67,"revenue":16141.81},{"state":"RR","region":"Norte","orders":41,"revenue":9039.52}],"top_sellers":[{"seller":"4869f7a5df","state":"SP","total_orders":1124,"total_revenue":247007.06,"avg_review":4.13,"late_pct":10.5,"avg_delivery_days":14.6,"is_dormant":0},{"seller":"7c67e1448b","state":"SP","total_orders":973,"total_revenue":237806.69,"avg_review":3.49,"late_pct":9.2,"avg_delivery_days":21.9,"is_dormant":0},{"seller":"4a3ca9315b","state":"SP","total_orders":1772,"total_revenue":231220.43,"avg_review":3.83,"late_pct":9.7,"avg_delivery_days":14.0,"is_dormant":0},{"seller":"53243585a1","state":"BA","total_orders":348,"total_revenue":230797.02,"avg_review":4.13,"late_pct":3.5,"avg_delivery_days":13.0,"is_dormant":0},{"seller":"fa1c13f261","state":"SP","total_orders":578,"total_revenue":200833.5,"avg_review":4.34,"late_pct":9.2,"avg_delivery_days":12.9,"is_dormant":0},{"seller":"da8622b14e","state":"SP","total_orders":1311,"total_revenue":184706.78,"avg_review":4.18,"late_pct":6.6,"avg_delivery_days":10.7,"is_dormant":0},{"seller":"7e93a43ef3","state":"SP","total_orders":319,"total_revenue":171973.55,"avg_review":4.21,"late_pct":4.7,"avg_delivery_days":10.8,"is_dormant":1},{"seller":"1025f0e2d4","state":"SP","total_orders":910,"total_revenue":171924.96,"avg_review":3.99,"late_pct":7.9,"avg_delivery_days":11.9,"is_dormant":0},{"seller":"7a67c85e85","state":"SP","total_orders":1145,"total_revenue":160278.52,"avg_review":4.25,"late_pct":5.2,"avg_delivery_days":10.7,"is_dormant":0},{"seller":"955fee9216","state":"SP","total_orders":1261,"total_revenue":156606.48,"avg_review":4.16,"late_pct":6.1,"avg_delivery_days":10.3,"is_dormant":0}],"seller_deciles":[{"revenue_decile":1,"sellers":297,"revenue":10221743.27},{"revenue_decile":2,"sellers":297,"revenue":2363992.19},{"revenue_decile":3,"sellers":297,"revenue":1229897.66},{"revenue_decile":4,"sellers":297,"revenue":659872.52},{"revenue_decile":5,"sellers":297,"revenue":395899.34},{"revenue_decile":6,"sellers":297,"revenue":247165.76},{"revenue_decile":7,"sellers":297,"revenue":149567.95},{"revenue_decile":8,"sellers":297,"revenue":84804.8},{"revenue_decile":9,"sellers":297,"revenue":47641.24},{"revenue_decile":10,"sellers":297,"revenue":19189.02}],"seller_risk":[{"seller":"7c67e1448b","state":"SP","total_orders":973,"total_revenue":237806.69,"avg_review":3.49,"late_pct":9.2,"days_since_last_sale":70},{"seller":"06a2c3af7b","state":"MA","total_orders":389,"total_revenue":48169.5,"avg_review":3.99,"late_pct":19.0,"days_since_last_sale":55},{"seller":"712e6ed8aa","state":"SC","total_orders":77,"total_revenue":46149.82,"avg_review":3.38,"late_pct":20.8,"days_since_last_sale":151},{"seller":"2eb70248d6","state":"SP","total_orders":187,"total_revenue":42046.73,"avg_review":2.7,"late_pct":11.2,"days_since_last_sale":89},{"seller":"88460e8ebd","state":"PR","total_orders":246,"total_revenue":36258.59,"avg_review":3.41,"late_pct":17.1,"days_since_last_sale":60},{"seller":"710e3548e0","state":"PR","total_orders":131,"total_revenue":26111.91,"avg_review":3.36,"late_pct":3.8,"days_since_last_sale":61},{"seller":"ff69aa92bb","state":"SP","total_orders":20,"total_revenue":23695.2,"avg_review":3.65,"late_pct":20.0,"days_since_last_sale":120},{"seller":"8444e55c1f","state":"MG","total_orders":92,"total_revenue":23445.67,"avg_review":3.26,"late_pct":6.5,"days_since_last_sale":109},{"seller":"cd68562d3f","state":"SP","total_orders":122,"total_revenue":20279.86,"avg_review":3.94,"late_pct":15.6,"days_since_last_sale":200},{"seller":"821fb029fc","state":"SP","total_orders":24,"total_revenue":19217.17,"avg_review":3.41,"late_pct":33.3,"days_since_last_sale":62}],"seller_health":[{"is_dormant":0,"sellers":1495,"avg_revenue":7903.0,"avg_review":4.21,"late_pct":5.8},{"is_dormant":1,"sellers":1475,"avg_revenue":2444.0,"avg_review":3.99,"late_pct":8.1}],"delivery_by_state":[{"state":"AL","region":"Nordeste","delivered_orders":397,"avg_delivery_days":24.0,"late_pct":21.41,"avg_review_score":3.85},{"state":"PA","region":"Norte","delivered_orders":946,"avg_delivery_days":23.3,"late_pct":11.21,"avg_review_score":3.91},{"state":"MA","region":"Nordeste","delivered_orders":716,"avg_delivery_days":21.1,"late_pct":17.46,"avg_review_score":3.83},{"state":"SE","region":"Nordeste","delivered_orders":338,"avg_delivery_days":20.9,"late_pct":15.09,"avg_review_score":3.91},{"state":"CE","region":"Nordeste","delivered_orders":1281,"avg_delivery_days":20.8,"late_pct":13.74,"avg_review_score":3.95},{"state":"PB","region":"Nordeste","delivered_orders":515,"avg_delivery_days":19.9,"late_pct":10.29,"avg_review_score":4.08},{"state":"PI","region":"Nordeste","delivered_orders":476,"avg_delivery_days":19.0,"late_pct":13.87,"avg_review_score":3.99},{"state":"BA","region":"Nordeste","delivered_orders":3256,"avg_delivery_days":18.9,"late_pct":12.16,"avg_review_score":3.93},{"state":"RO","region":"Norte","delivered_orders":244,"avg_delivery_days":18.9,"late_pct":2.87,"avg_review_score":4.16},{"state":"RN","region":"Nordeste","delivered_orders":474,"avg_delivery_days":18.8,"late_pct":9.28,"avg_review_score":4.15},{"state":"PE","region":"Nordeste","delivered_orders":1596,"avg_delivery_days":18.0,"late_pct":9.65,"avg_review_score":4.08},{"state":"MT","region":"Centro-Oeste","delivered_orders":886,"avg_delivery_days":17.6,"late_pct":6.09,"avg_review_score":4.15},{"state":"TO","region":"Norte","delivered_orders":274,"avg_delivery_days":17.2,"late_pct":9.85,"avg_review_score":4.15},{"state":"ES","region":"Sudeste","delivered_orders":1994,"avg_delivery_days":15.3,"late_pct":10.73,"avg_review_score":4.08},{"state":"MS","region":"Centro-Oeste","delivered_orders":700,"avg_delivery_days":15.2,"late_pct":9.71,"avg_review_score":4.16},{"state":"GO","region":"Centro-Oeste","delivered_orders":1960,"avg_delivery_days":15.1,"late_pct":6.48,"avg_review_score":4.11},{"state":"RJ","region":"Sudeste","delivered_orders":12344,"avg_delivery_days":14.8,"late_pct":12.11,"avg_review_score":3.97},{"state":"RS","region":"Sul","delivered_orders":5347,"avg_delivery_days":14.8,"late_pct":6.08,"avg_review_score":4.19},{"state":"SC","region":"Sul","delivered_orders":3547,"avg_delivery_days":14.5,"late_pct":8.2,"avg_review_score":4.13},{"state":"DF","region":"Centro-Oeste","delivered_orders":2079,"avg_delivery_days":12.5,"late_pct":5.63,"avg_review_score":4.13},{"state":"MG","region":"Sudeste","delivered_orders":11352,"avg_delivery_days":11.5,"late_pct":4.58,"avg_review_score":4.19},{"state":"PR","region":"Sul","delivered_orders":4923,"avg_delivery_days":11.5,"late_pct":4.04,"avg_review_score":4.24},{"state":"SP","region":"Sudeste","delivered_orders":40500,"avg_delivery_days":8.3,"late_pct":4.49,"avg_review_score":4.25}],"delivery_by_region":[{"region":"Norte","delivered_orders":1797,"avg_delivery_days":22.1,"late_pct":8.57,"avg_review":4.03},{"region":"Nordeste","delivered_orders":9049,"avg_delivery_days":19.5,"late_pct":12.71,"avg_review":3.97},{"region":"Centro-Oeste","delivered_orders":5625,"avg_delivery_days":14.6,"late_pct":6.51,"avg_review":4.13},{"region":"Sul","delivered_orders":13817,"avg_delivery_days":13.6,"late_pct":5.9,"avg_review":4.19},{"region":"Sudeste","delivered_orders":66190,"avg_delivery_days":10.3,"late_pct":6.12,"avg_review":4.18}],"delay_impact":[{"delivery_outcome":"10+ days early","orders":61523,"avg_review_score":4.32,"negative_pct":8.9},{"delivery_outcome":"Early","orders":26640,"avg_review_score":4.23,"negative_pct":10.0},{"delivery_outcome":"On time","orders":1280,"avg_review_score":4.03,"negative_pct":12.4},{"delivery_outcome":"1-3 days late","orders":1852,"avg_review_score":3.29,"negative_pct":32.1},{"delivery_outcome":"4-7 days late","orders":1748,"avg_review_score":2.1,"negative_pct":67.7},{"delivery_outcome":"8-15 days late","orders":1601,"avg_review_score":1.67,"negative_pct":80.0},{"delivery_outcome":"15+ days late","orders":1180,"avg_review_score":1.73,"negative_pct":78.3}],"review_distribution":[{"review_score":1,"reviews":11363},{"review_score":2,"reviews":3131},{"review_score":3,"reviews":8133},{"review_score":4,"reviews":19038},{"review_score":5,"reviews":57008}],"payment_types":[{"payment_type":"credit_card","orders":74975,"value":12542527.15},{"payment_type":"boleto","orders":19784,"value":2869361.27},{"payment_type":"voucher","orders":3151,"value":379043.91},{"payment_type":"debit_card","orders":1527,"value":217939.79},{"payment_type":"not_defined","orders":3,"value":0.0}]};
+
+const brl = v => v >= 1e6 ? "R$" + (v/1e6).toFixed(1) + "M"
+               : v >= 1e3 ? "R$" + Math.round(v/1e3) + "K"
+               : "R$" + v.toFixed(0);
+const brlFull = v => "R$ " + v.toLocaleString("en-US", {maximumFractionDigits:0});
+const num = v => v.toLocaleString("en-US");
+const pct = v => v.toFixed(1) + "%";
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function kpis(el, items){
+  document.getElementById(el).innerHTML = items.map(k => `
+    <div class="kpi ${k.tone||''}">
+      <span class="lab">${k.lab}</span>
+      <span class="val num">${k.val}</span>
+      <span class="note">${k.note||''}</span>
+    </div>`).join("");
+}
+
+function hbar(el, rows, o){
+  const max = Math.max(...rows.map(r => r[o.v]));
+  document.getElementById(el).innerHTML = `<div class="bars">` + rows.map(r => {
+    const color = o.color ? o.color(r) : "var(--c1)";
+    return `<div class="bar-row">
+      <span class="bar-lab" title="${r[o.k]}">${o.klab ? o.klab(r) : r[o.k]}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${Math.max(1.2, 100*r[o.v]/max)}%;background:${color}"></span></span>
+      <span class="bar-val">${o.fmt(r[o.v], r)}</span>
+    </div>`;
+  }).join("") + `</div>`;
+}
+
+function line(el, rows, o){
+  const W = 720, H = o.h || 230, P = {t:14, r:16, b:26, l:52};
+  const vals = rows.map(r => r[o.v]);
+  const max = o.max !== undefined ? o.max : Math.max(...vals) * 1.15;
+  const n = rows.length;
+  const x = i => P.l + i * (W - P.l - P.r) / Math.max(1, n - 1);
+  const y = v => H - P.b - (v / max) * (H - P.t - P.b);
+
+  const ticks = 4, gl = [], lb = [];
+  for (let i = 0; i <= ticks; i++){
+    const v = max * i / ticks, yy = y(v);
+    gl.push(`<line class="gl" x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}"/>`);
+    lb.push(`<text class="ax" x="${P.l-8}" y="${yy+3.5}" text-anchor="end">${o.yfmt(v)}</text>`);
+  }
+
+  let bands = "";
+  if (o.bands) o.bands.forEach(b => {
+    const i0 = rows.findIndex(r => r[o.k] >= b.from), i1raw = rows.map(r => r[o.k]).lastIndexOf(b.to);
+    const a = b.from ? x(i0 >= 0 ? i0 : 0) : P.l;
+    const z = b.to ? x(i1raw >= 0 ? i1raw : n-1) : W - P.r;
+    if (z > a) bands += `<rect class="band" x="${a}" y="${P.t}" width="${z-a}" height="${H-P.t-P.b}" opacity=".7"/>
+      <text class="bandtx" x="${(a+z)/2}" y="${P.t+14}" text-anchor="middle">${b.label}</text>`;
+  });
+
+  const path = rows.map((r,i) => `${i?"L":"M"}${x(i).toFixed(1)},${y(r[o.v]).toFixed(1)}`).join("");
+  const area = path + `L${x(n-1)},${H-P.b}L${x(0)},${H-P.b}Z`;
+  const stroke = o.color || "var(--c1)";
+
+  const every = Math.max(1, Math.ceil(n / 8));
+  const xl = rows.map((r,i) => i % every === 0 || i === n-1
+    ? `<text class="ax" x="${x(i)}" y="${H-8}" text-anchor="middle">${o.xfmt(r[o.k])}</text>` : "").join("");
+
+  const pk = vals.indexOf(Math.max(...vals));
+  const peak = `<circle class="dot" cx="${x(pk)}" cy="${y(vals[pk])}" r="4" fill="var(--surface)" stroke="${stroke}"/>
+    <text class="ax" x="${x(pk)}" y="${y(vals[pk])-11}" text-anchor="middle" style="fill:var(--ink);font-weight:650">${o.yfmt(vals[pk])}</text>`;
+
+  document.getElementById(el).innerHTML =
+   `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria||''}">
+      ${bands}${gl.join("")}
+      <path d="${area}" fill="${stroke}" opacity=".07"/>
+      <path class="ser" d="${path}" stroke="${stroke}"/>
+      ${peak}${lb.join("")}${xl}
+    </svg>`;
+}
+
+function cols(el, rows, o){
+  const W = 720, H = o.h || 200, P = {t:20, r:8, b:44, l:52};
+  const max = Math.max(...rows.map(r => r[o.v])) * 1.14;
+  const n = rows.length, bw = (W - P.l - P.r) / n;
+  const y = v => H - P.b - (v / max) * (H - P.t - P.b);
+
+  const gl = [], lb = [];
+  for (let i = 0; i <= 4; i++){
+    const v = max*i/4, yy = y(v);
+    gl.push(`<line class="gl" x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}"/>`);
+    lb.push(`<text class="ax" x="${P.l-8}" y="${yy+3.5}" text-anchor="end">${o.yfmt(v)}</text>`);
+  }
+  const bars = rows.map((r,i) => {
+    const h = Math.max(1, H - P.b - y(r[o.v])), xx = P.l + i*bw + bw*0.16;
+    const c = o.color ? o.color(r) : "var(--c1)";
+    return `<rect x="${xx}" y="${y(r[o.v])}" width="${bw*0.68}" height="${h}" rx="3" fill="${c}"/>
+      <text class="ax" x="${xx+bw*0.34}" y="${y(r[o.v])-6}" text-anchor="middle" style="font-size:10px">${o.vfmt(r[o.v])}</text>`;
+  }).join("");
+  const xl = rows.map((r,i) =>
+    `<text class="ax" x="${P.l+i*bw+bw*0.5}" y="${H-26}" text-anchor="middle" style="font-size:10px">${o.xfmt(r[o.k])}</text>
+     ${o.xsub ? `<text class="ax" x="${P.l+i*bw+bw*0.5}" y="${H-12}" text-anchor="middle" style="font-size:9.5px;opacity:.75">${o.xsub(r)}</text>` : ""}`).join("");
+
+  document.getElementById(el).innerHTML =
+   `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria||''}">
+      ${gl.join("")}${bars}${lb.join("")}${xl}
+    </svg>`;
+}
+
+function table(el, rows, colsDef){
+  const t = document.getElementById(el);
+  t.innerHTML =
+    `<thead><tr>${colsDef.map(c => `<th class="${c.r?'r':''}">${c.h}</th>`).join("")}</tr></thead>
+     <tbody>${rows.map(r => `<tr>${colsDef.map(c =>
+        `<td class="${c.r?'r':''} ${c.cls||''}">${c.f(r)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+}
+
+const K = DATA.kpis;
+
+kpis("k1", [
+  {lab:"Total revenue", val:brlFull(K.total_revenue), note:"delivered orders only"},
+  {lab:"Total orders",  val:num(K.total_orders), note:num(K.delivered_orders)+" delivered", tone:"alt"},
+  {lab:"Customers",     val:num(K.total_customers), note:"unique people"},
+  {lab:"Avg order value", val:"R$ "+K.avg_order_value.toFixed(2), note:"per delivered order"},
+  {lab:"Avg rating",    val:K.avg_review_score.toFixed(2), note:"of 5.00", tone:"warn"},
+  {lab:"On-time delivery", val:K.on_time_pct.toFixed(1)+"%", note:K.avg_delivery_days+" days average", tone:"good"},
+]);
+
+const MT = DATA.monthly_trend;
+line("c-rev", MT, {
+  k:"calendar_month", v:"revenue", h:250,
+  yfmt:brl, xfmt:m => m.slice(2).replace("-","/"),
+  aria:"Monthly revenue trend",
+  bands:[{from:"2016-09", to:"2016-12", label:"pilot"},{from:"2018-09", to:"2018-09", label:"partial"}]
+});
+line("c-ord", MT, {
+  k:"calendar_month", v:"orders", h:250, color:"var(--c2)",
+  yfmt:v => v >= 1000 ? (v/1000).toFixed(1)+"K" : Math.round(v), xfmt:m => m.slice(2).replace("-","/"),
+  aria:"Monthly delivered orders",
+  bands:[{from:"2016-09", to:"2016-12", label:"pilot"},{from:"2018-09", to:"2018-09", label:"partial"}]
+});
+hbar("c-cat", DATA.category_revenue, {
+  k:"product_category", v:"revenue", fmt:brl,
+  klab:r => r.product_category.replace(/_/g," ")
+});
+table("t-prod", DATA.top_products, [
+  {h:"Product", f:r => `<span class="mono">${r.product}</span>`},
+  {h:"Category", f:r => r.product_category.replace(/_/g," ")},
+  {h:"Units", r:1, f:r => `<span class="num">${num(r.units_sold)}</span>`},
+  {h:"Revenue", r:1, f:r => `<span class="num">${brlFull(r.revenue)}</span>`},
+]);
+
+const SEG = DATA.segments;
+kpis("k2", [
+  {lab:"Total customers", val:num(K.total_customers), note:"unique people"},
+  {lab:"Repeat rate", val:K.repeat_rate_pct.toFixed(1)+"%", note:"2,801 of 93,358", tone:"crit"},
+  {lab:"Avg customer value", val:"R$ 165.17", note:"lifetime, delivered"},
+  {lab:"Repeat value multiple", val:"1.92×", note:"R$308.53 vs R$160.73", tone:"good"},
+  {lab:"Segments", val:String(SEG.length), note:"RFM-based"},
+  {lab:"Champions", val:num(SEG.find(s => s.segment === "Champions").customers), note:"highest value + frequency", tone:"alt"},
+]);
+hbar("c-seg", [...SEG].sort((a,b) => b.customers - a.customers), {
+  k:"segment", v:"customers", fmt:v => num(v),
+  color:r => r.segment.includes("Risk") ? "var(--crit)" : r.segment === "Champions" ? "var(--good)" : "var(--c1)"
+});
+hbar("c-segrev", SEG, {
+  k:"segment", v:"revenue", fmt:brl,
+  color:r => r.segment.includes("Risk") ? "var(--crit)" : r.segment === "Champions" ? "var(--good)" : "var(--c1)"
+});
+cols("c-freq", DATA.frequency_dist.filter(r => r.orders_placed <= 5), {
+  k:"orders_placed", v:"customers", h:210,
+  yfmt:v => v >= 1000 ? Math.round(v/1000)+"K" : Math.round(v),
+  vfmt:v => v >= 1000 ? (v/1000).toFixed(0)+"K" : v,
+  xfmt:v => v + (v === 1 ? " order" : " orders"),
+  color:r => r.orders_placed === 1 ? "var(--crit)" : "var(--c1)",
+  aria:"Purchase frequency distribution"
+});
+
+(function(){
+  const rf = DATA.rfm_distribution, mx = Math.max(...rf.map(r => r.customers));
+  let h = `<div class="hm"><div class="hm-h"></div>` +
+          [1,2,3,4,5].map(m => `<div class="hm-h">M${m}</div>`).join("");
+  for (let r = 5; r >= 1; r--){
+    h += `<div class="hm-h">R${r}</div>`;
+    for (let m = 1; m <= 5; m++){
+      const c = rf.find(x => x.r_score === r && x.m_score === m);
+      const v = c ? c.customers : 0, t = v / mx;
+      h += `<div class="hm-c" title="R${r} M${m}: ${num(v)} customers"
+             style="background:color-mix(in srgb, var(--c1) ${(8+t*88).toFixed(0)}%, var(--surface));
+                    color:${t > 0.45 ? "#fff" : "var(--ink-2)"}">${v ? (v/1000).toFixed(1)+"K" : "–"}</div>`;
+    }
+  }
+  document.getElementById("c-rfm").innerHTML = h + `</div>
+    <div class="legend"><span>R = recency score, M = monetary score · 5 is best</span></div>`;
+})();
+
+table("t-state", DATA.state_revenue.slice(0,12), [
+  {h:"State", f:r => `<b>${r.state}</b>`},
+  {h:"Region", f:r => r.region || "—"},
+  {h:"Orders", r:1, f:r => `<span class="num">${num(r.orders)}</span>`},
+  {h:"Revenue", r:1, f:r => `<span class="num">${brlFull(r.revenue)}</span>`},
+  {h:"Share", r:1, f:r => `<span class="num">${(100*r.revenue/DATA.kpis.total_revenue).toFixed(1)}%</span>`},
+]);
+
+const SH = DATA.seller_health, dormant = SH.find(s => s.is_dormant === 1), active = SH.find(s => s.is_dormant === 0);
+kpis("k3", [
+  {lab:"Products", val:num(K.total_products), note:"74 categories"},
+  {lab:"Sellers", val:num(K.total_sellers), note:num(active.sellers)+" active"},
+  {lab:"Dormant sellers", val:pct(100*dormant.sellers/(dormant.sellers+active.sellers)), note:"no sale in 90 days", tone:"crit"},
+  {lab:"Avg seller rating", val:"4.10", note:"active 4.21 · dormant 3.99", tone:"warn"},
+  {lab:"Top decile share", val:"66.3%", note:"297 sellers of 2,970", tone:"alt"},
+  {lab:"Negative reviews", val:K.negative_review_pct.toFixed(1)+"%", note:"1–2 star share", tone:"crit"},
+]);
+hbar("c-dec", DATA.seller_deciles, {
+  k:"revenue_decile", v:"revenue", fmt:brl,
+  klab:r => "Decile " + r.revenue_decile,
+  color:r => r.revenue_decile === 1 ? "var(--c2)" : "var(--c1)"
+});
+(function(){
+  const cr = DATA.category_rating;
+  const pick = [...cr.slice(0,4), ...cr.slice(-4)];
+  hbar("c-catrate", pick, {
+    k:"product_category", v:"avg_review_score", fmt:v => v.toFixed(2) + " ★",
+    klab:r => r.product_category.replace(/_/g," "),
+    color:r => r.avg_review_score >= 4.2 ? "var(--good)" : r.avg_review_score >= 3.8 ? "var(--c1)" : "var(--crit)"
+  });
+})();
+table("t-sell", DATA.top_sellers, [
+  {h:"Seller", f:r => `<span class="mono">${r.seller}</span>`},
+  {h:"State", f:r => r.state},
+  {h:"Orders", r:1, f:r => `<span class="num">${num(r.total_orders)}</span>`},
+  {h:"Revenue", r:1, f:r => `<span class="num">${brlFull(r.total_revenue)}</span>`},
+  {h:"Rating", r:1, f:r => `<span class="num">${r.avg_review ? r.avg_review.toFixed(2) : "—"}</span>`},
+  {h:"Late", r:1, f:r => `<span class="num">${r.late_pct.toFixed(1)}%</span>`},
+  {h:"Delivery", r:1, f:r => `<span class="num">${r.avg_delivery_days.toFixed(1)}d</span>`},
+  {h:"Status", f:r => r.is_dormant
+      ? `<span class="pill p-crit">Dormant</span>` : `<span class="pill p-good">Active</span>`},
+]);
+table("t-worst", DATA.worst_products, [
+  {h:"Product", f:r => `<span class="mono">${r.product}</span>`},
+  {h:"Category", f:r => r.product_category.replace(/_/g," ")},
+  {h:"Units", r:1, f:r => `<span class="num">${num(r.units_sold)}</span>`},
+  {h:"Rating", r:1, f:r => `<span class="num">${r.avg_review_score.toFixed(2)}</span>`},
+  {h:"Late", r:1, f:r => `<span class="num">${r.late_pct.toFixed(1)}%</span>`},
+  {h:"Likely cause", f:r => {
+      const bad = r.avg_review_score < 2.5, slow = r.late_pct > 15;
+      return bad && slow ? `<span class="pill p-crit">quality + logistics</span>`
+           : bad         ? `<span class="pill p-crit">product quality</span>`
+           : slow        ? `<span class="pill p-warn">logistics</span>`
+                         : `<span class="pill p-mute">review</span>`;
+  }},
+]);
+
+kpis("k4", [
+  {lab:"Avg delivery time", val:K.avg_delivery_days + " days", note:"purchase to doorstep"},
+  {lab:"On-time rate", val:K.on_time_pct.toFixed(1)+"%", note:"vs promised date", tone:"good"},
+  {lab:"Late deliveries", val:(100-K.on_time_pct).toFixed(1)+"%", note:"6,534 orders", tone:"crit"},
+  {lab:"Avg vs promise", val:"−11.2 days", note:"promise 23.7 · deliver 12.1", tone:"alt"},
+  {lab:"Slowest region", val:"22.1 days", note:"Norte · 2.1× Sudeste", tone:"warn"},
+  {lab:"Negative reviews", val:K.negative_review_pct.toFixed(1)+"%", note:"14,575 orders", tone:"crit"},
+]);
+(function(){
+  const d = DATA.delay_impact;
+  const short = s => s.replace(" days","d").replace("10+d early","10+d early").replace(" late"," late");
+  cols("c-delay", d, {
+    k:"delivery_outcome", v:"negative_pct", h:230,
+    yfmt:v => v.toFixed(0)+"%", vfmt:v => v.toFixed(1)+"%",
+    xfmt:short, xsub:r => r.avg_review_score.toFixed(2)+" ★",
+    color:r => r.negative_pct > 60 ? "var(--crit)"
+             : r.negative_pct > 25 ? "var(--warn)" : "var(--good)",
+    aria:"Negative review rate by delivery outcome"
+  });
+  document.getElementById("c-delay").insertAdjacentHTML("beforeend",
+    `<div class="legend">
+       <span><span class="sw" style="background:var(--good)"></span>on time or early</span>
+       <span><span class="sw" style="background:var(--warn)"></span>slightly late</span>
+       <span><span class="sw" style="background:var(--crit)"></span>badly late</span>
+       <span>Second line under each bar is the average review score for that group.</span>
+     </div>`);
+})();
+hbar("c-reg", DATA.delivery_by_region, {
+  k:"region", v:"avg_delivery_days", fmt:v => v.toFixed(1) + " days",
+  color:r => r.avg_delivery_days > 18 ? "var(--crit)" : r.avg_delivery_days > 13 ? "var(--warn)" : "var(--good)"
+});
+line("c-late", DATA.late_trend.filter(r => r.calendar_month >= "2017-01" && r.calendar_month <= "2018-08"), {
+  k:"calendar_month", v:"late_pct", h:230, color:"var(--crit)",
+  yfmt:v => v.toFixed(0)+"%", xfmt:m => m.slice(2).replace("-","/"),
+  aria:"Late delivery rate over time"
+});
+table("t-del", DATA.delivery_by_state.slice(0,12), [
+  {h:"State", f:r => `<b>${r.state}</b>`},
+  {h:"Region", f:r => r.region || "—"},
+  {h:"Orders", r:1, f:r => `<span class="num">${num(r.delivered_orders)}</span>`},
+  {h:"Avg days", r:1, f:r => `<span class="num">${Number(r.avg_delivery_days).toFixed(1)}</span>`},
+  {h:"Late", r:1, f:r => `<span class="num">${Number(r.late_pct).toFixed(1)}%</span>`},
+  {h:"Rating", r:1, f:r => `<span class="num">${Number(r.avg_review_score).toFixed(2)}</span>`},
+  {h:"Grade", f:r => {
+      const d = Number(r.avg_delivery_days);
+      return d > 20 ? `<span class="pill p-crit">critical</span>`
+           : d > 15 ? `<span class="pill p-warn">slow</span>`
+           : d > 10 ? `<span class="pill p-mute">acceptable</span>`
+                    : `<span class="pill p-good">fast</span>`;
+  }},
+]);
+
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x === t)));
+  document.querySelectorAll(".page").forEach(p => p.classList.toggle("on", p.id === t.dataset.page));
+  window.scrollTo({top:0, behavior:"instant"});
+}));
+</script>

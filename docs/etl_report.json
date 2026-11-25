@@ -1,0 +1,296 @@
+{
+  "run_at": "2026-08-09T12:31:39",
+  "duration_seconds": 132.64,
+  "extract": {
+    "source_dir": "data/raw",
+    "tables_read": 9,
+    "row_counts": {
+      "customers": 99441,
+      "orders": 99441,
+      "order_items": 112650,
+      "payments": 103886,
+      "reviews": 99224,
+      "products": 32951,
+      "sellers": 3095,
+      "geolocation": 1000163,
+      "category_translation": 71
+    },
+    "total_rows_extracted": 1550922,
+    "row_count_drift": []
+  },
+  "transform": {
+    "row_counts": {
+      "customers": 99441,
+      "orders": 99441,
+      "order_items": 112650,
+      "payments": 99440,
+      "reviews": 98673,
+      "products": 32951,
+      "sellers": 3095,
+      "geolocation": 19015,
+      "customer_rfm": 93358,
+      "seller_performance": 2970
+    },
+    "quarantined": {},
+    "quarantined_total": 0,
+    "revenue_delivered": 15419773.749999996,
+    "delivered_items": 110197
+  },
+  "features_created": [
+    "delivery_days",
+    "delay_days",
+    "is_late",
+    "approval_hours",
+    "carrier_handover_days",
+    "estimated_delivery_days",
+    "purchase_hour",
+    "purchase_day_of_week",
+    "is_weekend_purchase",
+    "item_revenue",
+    "freight_ratio",
+    "seller_customer_distance_km",
+    "product_volume_cm3",
+    "product_density",
+    "payment_total",
+    "is_installment_plan",
+    "review_text_length",
+    "is_negative_review",
+    "response_days",
+    "recency_days",
+    "frequency",
+    "monetary",
+    "rfm_score",
+    "segment",
+    "late_rate",
+    "days_since_last_sale",
+    "is_dormant"
+  ],
+  "validation": {
+    "total_checks": 41,
+    "passed": 41,
+    "failed": 0,
+    "critical_failures": [],
+    "checks": [
+      {
+        "check": "PK unique: customers (customer_id)",
+        "result": "PASS",
+        "detail": "unique"
+      },
+      {
+        "check": "PK unique: orders (order_id)",
+        "result": "PASS",
+        "detail": "unique"
+      },
+      {
+        "check": "PK unique: order_items (order_id+order_item_id)",
+        "result": "PASS",
+        "detail": "unique"
+      },
+      {
+        "check": "PK unique: payments (order_id)",
+        "result": "PASS",
+        "detail": "unique"
+      },
+      {
+        "check": "PK unique: reviews (order_id)",
+        "result": "PASS",
+        "detail": "unique"
+      },
+      {
+        "check": "PK unique: products (product_id)",
+        "result": "PASS",
+        "detail": "unique"
+      },
+      {
+        "check": "PK unique: sellers (seller_id)",
+        "result": "PASS",
+        "detail": "unique"
+      },
+      {
+        "check": "PK unique: geolocation (zip_code_prefix)",
+        "result": "PASS",
+        "detail": "unique"
+      },
+      {
+        "check": "FK intact: orders -> customers",
+        "result": "PASS",
+        "detail": "0 orphans"
+      },
+      {
+        "check": "FK intact: order_items -> orders",
+        "result": "PASS",
+        "detail": "0 orphans"
+      },
+      {
+        "check": "FK intact: order_items -> products",
+        "result": "PASS",
+        "detail": "0 orphans"
+      },
+      {
+        "check": "FK intact: order_items -> sellers",
+        "result": "PASS",
+        "detail": "0 orphans"
+      },
+      {
+        "check": "FK intact: payments -> orders",
+        "result": "PASS",
+        "detail": "0 orphans"
+      },
+      {
+        "check": "FK intact: reviews -> orders",
+        "result": "PASS",
+        "detail": "0 orphans"
+      },
+      {
+        "check": "no negative prices",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "no negative freight",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "no negative payments",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "review scores within 1-5",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "no negative delivery times",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "purchase dates within 2016-09-04..2018-10-17",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "no null purchase timestamps",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "delivered orders carry a delivery date",
+        "result": "PASS",
+        "detail": "8 delivered rows lack a delivery date"
+      },
+      {
+        "check": "geolocation is one row per zip prefix",
+        "result": "PASS",
+        "detail": "19,015 rows / 19,015 prefixes"
+      },
+      {
+        "check": "payments aggregated to one row per order",
+        "result": "PASS",
+        "detail": "99,440 rows"
+      },
+      {
+        "check": "reviews deduplicated to one row per order",
+        "result": "PASS",
+        "detail": "98,673 rows"
+      },
+      {
+        "check": "every product resolves to a category",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "unique customers == baseline",
+        "result": "PASS",
+        "detail": "96,096 (expected 96,096)"
+      },
+      {
+        "check": "delivered orders == baseline",
+        "result": "PASS",
+        "detail": "96,478 (expected 96,478)"
+      },
+      {
+        "check": "REVENUE RECONCILES to the cent",
+        "result": "PASS",
+        "detail": "R$ 15,419,773.75 vs baseline R$ 15,419,773.75 (delta R$ 0.00)"
+      },
+      {
+        "check": "price component reconciles",
+        "result": "PASS",
+        "detail": "delta R$ 0.00"
+      },
+      {
+        "check": "freight component reconciles",
+        "result": "PASS",
+        "detail": "delta R$ 0.00"
+      },
+      {
+        "check": "delivered line items == baseline",
+        "result": "PASS",
+        "detail": "110,197 (expected 110,197)"
+      },
+      {
+        "check": "customer_rfm is one row per person",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "RFM monetary ties back to revenue",
+        "result": "PASS",
+        "detail": "delta R$ 0.00"
+      },
+      {
+        "check": "is_late is strictly binary",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "late order count == baseline",
+        "result": "PASS",
+        "detail": "6,534 late (6.77%), expected 6,534"
+      },
+      {
+        "check": "avg delivery days == baseline",
+        "result": "PASS",
+        "detail": "12.09 days (expected 12.09)"
+      },
+      {
+        "check": "customer late_order_rate within 0-1",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "seller late_rate within 0-1",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "seller late_orders <= total_orders",
+        "result": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "customer late_orders <= orders placed",
+        "result": "PASS",
+        "detail": ""
+      }
+    ]
+  },
+  "load": {
+    "rows_written": {
+      "customers": 99441,
+      "orders": 99441,
+      "order_items": 112650,
+      "payments": 99440,
+      "reviews": 98673,
+      "products": 32951,
+      "sellers": 3095,
+      "geolocation": 19015,
+      "customer_rfm": 93358,
+      "seller_performance": 2970
+    },
+    "rows_rejected": 0
+  }
+}

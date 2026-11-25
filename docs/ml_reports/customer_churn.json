@@ -1,0 +1,48 @@
+{
+  "model": "XGBoost Classifier",
+  "target_engineering": {
+    "method": "cutoff-date + forward window",
+    "cutoff_date": "2018-02-15",
+    "window_days": 180,
+    "window_end": "2018-08-14",
+    "rule": "churn=1 if customer_unique_id places NO order in (cutoff, cutoff+180d]"
+  },
+  "trained_target": "returned (1 = repeat purchase in window, ~3% positive \u2014 minority framing)",
+  "output_target": "churn_probability = 1 - P(returned)",
+  "metrics": {
+    "cutoff_date": "2018-02-15",
+    "window_days": 180,
+    "eligible_customers": 52191,
+    "n_features": 38,
+    "return_rate": 0.011956084382364776,
+    "churn_rate": 0.9880439156176353,
+    "test_size": 13048,
+    "roc_auc": 0.5502232054066525,
+    "pr_auc": 0.023346056596826235,
+    "precision_return": 0.015106340687736036,
+    "recall_return": 0.48717948717948717,
+    "f1_return": 0.029304029304029304,
+    "scale_pos_weight": 82.63888888888889,
+    "best_iteration": 30,
+    "top_decile_return_rate": 0.023773006134969327,
+    "top_decile_lift": 1.9883986156992295
+  },
+  "top_features": {
+    "tenure_days": 0.07329999655485153,
+    "customer_state_SP": 0.05810000002384186,
+    "customer_state_ES": 0.05550000071525574,
+    "frequency": 0.05339999869465828,
+    "customer_state_DF": 0.050700001418590546,
+    "customer_state_TO": 0.049300000071525574,
+    "total_items": 0.04540000110864639,
+    "customer_state_PA": 0.04470000043511391,
+    "average_order_value": 0.03999999910593033,
+    "recency": 0.03999999910593033
+  },
+  "risk_band_counts": {
+    "LOW": 31314,
+    "MEDIUM": 15657,
+    "HIGH": 5220
+  },
+  "honest_finding": "ROC-AUC 0.55 is weak \u2014 barely above the 0.50 random baseline, well below the delivery-delay model's 0.70. Tested a 365-day window as an alternative (vs. this run's 180 days) on the hypothesis that a longer window would reduce label noise from real repeat-buyers whose second order just misses the cutoff; it performed worse (lift 1.22x vs. 1.99x here), on a smaller eligible population. The one number worth trusting is top-decile lift (1.99x): customers the model ranks as most likely to return actually do return at 2.0x the base rate. That's real, if modest, and it is what the HIGH risk band above is built from \u2014 not the absolute probability values, which the ROC-AUC says are not precise enough to read as calibrated percentages."
+}

@@ -1,0 +1,657 @@
+<title>Olist Commerce Intelligence — Executive Dashboard</title>
+
+<style>
+:root{
+  color-scheme: light;
+  --ground:#EBEEF3; --surface:#FFFFFF; --surface-2:#F5F7FA; --raised:#FFFFFF;
+  --ink:#0D1219; --ink-2:#54606F; --ink-3:#8A96A6;
+  --line:#DCE2EA; --line-2:#EDF1F5;
+  --c1:#2A78D6; --c1-soft:#DCE9FA; --c2:#EB6834;
+  --good:#0A8F0A; --warn:#B67F00; --crit:#C7332F;
+  --good-bg:#E4F4E4; --warn-bg:#FBF0D8; --crit-bg:#FAE5E4;
+  --shadow:0 1px 2px rgba(13,18,25,.05), 0 4px 14px -6px rgba(13,18,25,.12);
+  --rail:#101720; --rail-ink:#C3CDDA; --rail-ink-2:#7D8BA0; --rail-line:#202A37;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#080B10; --surface:#141A23; --surface-2:#1A212B; --raised:#171E28;
+    --ink:#EDF1F6; --ink-2:#9AA7B8; --ink-3:#6B7889;
+    --line:#242D3A; --line-2:#1C242F;
+    --c1:#4A93E8; --c1-soft:#16283F; --c2:#E87346;
+    --good:#3FBF3F; --warn:#E5A81E; --crit:#E15B57;
+    --good-bg:#122A12; --warn-bg:#2E2410; --crit-bg:#2E1614;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px -8px rgba(0,0,0,.6);
+    --rail:#0C1119; --rail-ink:#AEBACA; --rail-ink-2:#6B7889; --rail-line:#1C2531;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#080B10; --surface:#141A23; --surface-2:#1A212B; --raised:#171E28;
+  --ink:#EDF1F6; --ink-2:#9AA7B8; --ink-3:#6B7889;
+  --line:#242D3A; --line-2:#1C242F;
+  --c1:#4A93E8; --c1-soft:#16283F; --c2:#E87346;
+  --good:#3FBF3F; --warn:#E5A81E; --crit:#E15B57;
+  --good-bg:#122A12; --warn-bg:#2E2410; --crit-bg:#2E1614;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px -8px rgba(0,0,0,.6);
+  --rail:#0C1119; --rail-ink:#AEBACA; --rail-ink-2:#6B7889; --rail-line:#1C2531;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums;}
+.mono{font-family:ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;font-size:.86em;}
+
+.app{display:grid; grid-template-columns:236px 1fr; min-height:100vh;}
+
+.rail{
+  background:var(--rail); color:var(--rail-ink);
+  display:flex; flex-direction:column; padding:22px 0 16px;
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+}
+.rail-brand{padding:0 22px 20px; border-bottom:1px solid var(--rail-line); margin-bottom:14px;}
+.rail-brand h1{
+  margin:0; font-size:15px; font-weight:650; letter-spacing:-.01em; color:#fff; line-height:1.3;
+}
+.rail-brand p{margin:6px 0 0; font-size:11.5px; color:var(--rail-ink-2); line-height:1.45;}
+.rail-sec{
+  padding:0 22px; margin:16px 0 8px; font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--rail-ink-2);
+}
+.tab{
+  display:flex; align-items:baseline; gap:10px; width:100%;
+  background:none; border:0; border-left:3px solid transparent;
+  padding:10px 22px; text-align:left; cursor:pointer;
+  color:var(--rail-ink); font:inherit; font-size:13.5px;
+}
+.tab:hover{background:rgba(255,255,255,.045);}
+.tab[aria-selected="true"]{
+  background:rgba(74,147,232,.14); border-left-color:var(--c1); color:#fff; font-weight:600;
+}
+.tab:focus-visible{outline:2px solid var(--c1); outline-offset:-2px;}
+.tab-n{font-size:10.5px; color:var(--rail-ink-2); font-variant-numeric:tabular-nums;}
+.tab[aria-selected="true"] .tab-n{color:var(--c1);}
+.rail-foot{
+  margin-top:auto; padding:16px 22px 0; border-top:1px solid var(--rail-line);
+  font-size:11px; color:var(--rail-ink-2); line-height:1.55;
+}
+.rail-foot b{color:var(--rail-ink); font-weight:600;}
+
+.main{padding:26px 30px 60px; max-width:1500px;}
+.page{display:none;}
+.page.on{display:block;}
+
+.phead{margin-bottom:22px;}
+.phead h2{margin:0; font-size:22px; font-weight:660; letter-spacing:-.02em;}
+.phead p{margin:6px 0 0; color:var(--ink-2); font-size:13.5px; max-width:76ch;}
+
+.grid{display:grid; gap:16px; grid-template-columns:repeat(12,1fr);}
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:18px 18px 16px; box-shadow:var(--shadow); min-width:0;
+}
+.card > h3{
+  margin:0 0 2px; font-size:13.5px; font-weight:640; letter-spacing:-.005em;
+}
+.card > .sub{margin:0 0 16px; font-size:11.5px; color:var(--ink-3); line-height:1.5;}
+
+.kpis{display:grid; gap:12px; grid-template-columns:repeat(6,1fr); margin-bottom:18px;}
+.kpi{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:14px 15px; box-shadow:var(--shadow); position:relative; overflow:hidden;
+}
+.kpi::before{content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--c1);}
+.kpi.good::before{background:var(--good);} .kpi.warn::before{background:var(--warn);}
+.kpi.crit::before{background:var(--crit);} .kpi.alt::before{background:var(--c2);}
+.kpi .lab{
+  font-size:10px; font-weight:700; letter-spacing:.085em; text-transform:uppercase;
+  color:var(--ink-3); display:block; margin-bottom:7px;
+}
+.kpi .val{font-size:25px; font-weight:660; letter-spacing:-.025em; line-height:1.05; display:block;}
+.kpi .note{font-size:11px; color:var(--ink-3); margin-top:5px; display:block;}
+
+.bars{display:flex; flex-direction:column; gap:9px;}
+.bar-row{display:grid; grid-template-columns:minmax(84px,auto) 1fr auto; gap:12px; align-items:center;}
+.bar-lab{font-size:12.5px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.bar-track{background:var(--line-2); border-radius:3px; height:16px; position:relative;}
+.bar-fill{height:100%; border-radius:3px; background:var(--c1); min-width:2px;}
+.bar-val{font-size:12.5px; font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums;}
+
+.tw{overflow-x:auto; margin:0 -18px -16px; padding:0 18px 4px;}
+table{border-collapse:collapse; width:100%; font-size:12.5px;}
+th{
+  text-align:left; font-size:10px; font-weight:700; letter-spacing:.075em;
+  text-transform:uppercase; color:var(--ink-3); padding:0 12px 8px 0;
+  border-bottom:1px solid var(--line); white-space:nowrap;
+}
+td{padding:8px 12px 8px 0; border-bottom:1px solid var(--line-2); white-space:nowrap;}
+tbody tr:last-child td{border-bottom:0;}
+th.r,td.r{text-align:right; padding-right:0;}
+tbody tr:hover{background:var(--surface-2);}
+
+.pill{
+  display:inline-block; padding:2px 8px; border-radius:20px; font-size:10.5px;
+  font-weight:650; letter-spacing:.01em; white-space:nowrap;
+}
+.p-good{background:var(--good-bg); color:var(--good);}
+.p-warn{background:var(--warn-bg); color:var(--warn);}
+.p-crit{background:var(--crit-bg); color:var(--crit);}
+.p-mute{background:var(--line-2); color:var(--ink-3);}
+
+.chart{width:100%; height:auto; display:block; overflow:visible;}
+.gl{stroke:var(--line); stroke-width:1; vector-effect:non-scaling-stroke;}
+.ax{fill:var(--ink-3); font-size:11px; font-family:inherit;}
+.ser{fill:none; stroke-width:2; vector-effect:non-scaling-stroke;}
+.dot{stroke-width:2; vector-effect:non-scaling-stroke;}
+.band{fill:var(--line-2);}
+.bandtx{fill:var(--ink-3); font-size:10.5px;}
+
+.callout{
+  border-left:3px solid var(--c1); background:var(--c1-soft);
+  padding:13px 16px; border-radius:0 8px 8px 0; font-size:13px; line-height:1.6;
+}
+.callout.warnc{border-left-color:var(--warn); background:var(--warn-bg);}
+.callout b{font-weight:660;}
+.legend{display:flex; gap:16px; flex-wrap:wrap; font-size:11.5px; color:var(--ink-2); margin-top:12px;}
+.legend span{display:flex; align-items:center; gap:6px;}
+.sw{width:11px; height:11px; border-radius:2px; flex:none;}
+
+.hm{display:grid; grid-template-columns:auto repeat(5,1fr); gap:3px; font-size:11px;}
+.hm-c{
+  aspect-ratio:1.7; border-radius:3px; display:flex; align-items:center;
+  justify-content:center; font-weight:600; font-variant-numeric:tabular-nums; font-size:11px;
+}
+.hm-h{color:var(--ink-3); font-size:10px; font-weight:700; letter-spacing:.06em;
+  display:flex; align-items:center; justify-content:center; text-transform:uppercase;}
+
+.c12{grid-column:span 12;} .c8{grid-column:span 8;} .c7{grid-column:span 7;}
+.c6{grid-column:span 6;} .c5{grid-column:span 5;} .c4{grid-column:span 4;}
+
+@media (max-width:1180px){
+  .kpis{grid-template-columns:repeat(3,1fr);}
+  .c8,.c7,.c6,.c5,.c4{grid-column:span 12;}
+}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;}
+  .rail{position:static; height:auto; flex-direction:column;}
+  .main{padding:20px 16px 40px;}
+  .kpis{grid-template-columns:repeat(2,1fr);}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important;}}
+</style>
+
+<div class="app">
+  <nav class="rail">
+    <div class="rail-brand">
+      <h1>Olist Commerce Intelligence</h1>
+      <p>Brazilian marketplace · Sep 2016 – Oct 2018</p>
+    </div>
+    <div class="rail-sec">Dashboard pages</div>
+    <button class="tab" role="tab" aria-selected="true"  data-page="p1"><span class="tab-n">01</span> Executive</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="p2"><span class="tab-n">02</span> Customers</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="p3"><span class="tab-n">03</span> Products &amp; Sellers</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="p4"><span class="tab-n">04</span> Operations</button>
+    <div class="rail-foot">
+      Sourced from <b>ecommerce_dw</b><br>
+      MySQL star schema · 5 dimensions, 4 facts<br>
+      Revenue reconciles to <b>R$&nbsp;15,419,773.75</b>
+    </div>
+  </nav>
+
+  <main class="main">
+    <section class="page on" id="p1">
+      <div class="phead">
+        <h2>Executive Dashboard</h2>
+        <p>Headline performance across the full marketplace. Revenue counts <em>price + freight on
+        delivered orders only</em> — the same definition used by the SQL layer, the ML features and Power BI.</p>
+      </div>
+      <div class="kpis" id="k1"></div>
+      <div class="grid">
+        <div class="card c7">
+          <h3>Revenue trend</h3>
+          <p class="sub">Shaded windows are not comparable — Olist's pilot phase on the left (Nov 2016 has zero revenue), the truncated final month on the right (data stops 17 Oct 2018).</p>
+          <div id="c-rev"></div>
+        </div>
+        <div class="card c5">
+          <h3>Orders trend</h3>
+          <p class="sub">Plotted separately from revenue rather than on a second axis — two scales on one chart invent a relationship the data does not contain.</p>
+          <div id="c-ord"></div>
+        </div>
+        <div class="card c5">
+          <h3>Revenue by category</h3>
+          <p class="sub">Top 10 of 74 categories.</p>
+          <div id="c-cat"></div>
+        </div>
+        <div class="card c7">
+          <h3>Top products by revenue</h3>
+          <p class="sub">Product IDs truncated to 10 characters for display.</p>
+          <div class="tw"><table id="t-prod"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="p2">
+      <div class="phead">
+        <h2>Customer Intelligence</h2>
+        <p>Segmentation and retention, keyed on <span class="mono">customer_unique_id</span> — the person — not
+        <span class="mono">customer_id</span>, which Olist re-issues for every order.</p>
+      </div>
+      <div class="kpis" id="k2"></div>
+      <div class="grid">
+        <div class="card c12">
+          <div class="callout warnc">
+            <b>3.0% repeat rate is real, not a broken metric.</b> Olist is a one-and-done marketplace:
+            90,557 of 93,358 customers order exactly once. Repeat buyers are worth <b>1.9×</b> more
+            (R$&nbsp;308.53 vs R$&nbsp;160.73 lifetime value), so retention is the opportunity — but customer
+            churn cannot be modelled here, which is why the ML layer targets <b>seller</b> churn instead.
+          </div>
+        </div>
+        <div class="card c6">
+          <h3>Customers by segment</h3>
+          <p class="sub">RFM segments. Frequency is near-constant in this dataset, so segments lean on recency, monetary value and delivery experience.</p>
+          <div id="c-seg"></div>
+        </div>
+        <div class="card c6">
+          <h3>Revenue by segment</h3>
+          <p class="sub">Where the money actually sits — not where the customers do.</p>
+          <div id="c-segrev"></div>
+        </div>
+        <div class="card c5">
+          <h3>Purchase frequency</h3>
+          <p class="sub">Orders placed per customer.</p>
+          <div id="c-freq"></div>
+        </div>
+        <div class="card c7">
+          <h3>RFM distribution</h3>
+          <p class="sub">Customers by recency score (rows) and monetary score (columns). 5 = best.</p>
+          <div id="c-rfm"></div>
+        </div>
+        <div class="card c12">
+          <h3>Revenue by state</h3>
+          <p class="sub">Top 12 of 27 states.</p>
+          <div class="tw"><table id="t-state"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="p3">
+      <div class="phead">
+        <h2>Product &amp; Seller Performance</h2>
+        <p>Commercial performance placed beside service quality. Revenue alone is a vanity ranking —
+        review score and late rate are what make a seller list actionable.</p>
+      </div>
+      <div class="kpis" id="k3"></div>
+      <div class="grid">
+        <div class="card c6">
+          <h3>Seller revenue concentration</h3>
+          <p class="sub">Sellers grouped into deciles by revenue. Decile 1 is the top 10%.</p>
+          <div id="c-dec"></div>
+        </div>
+        <div class="card c6">
+          <h3>Category ratings</h3>
+          <p class="sub">Best and worst rated categories with at least 300 reviewed orders.</p>
+          <div id="c-catrate"></div>
+        </div>
+        <div class="card c12">
+          <h3>Top sellers</h3>
+          <p class="sub">Ranked by revenue, shown with the service metrics that decide whether that revenue is safe.</p>
+          <div class="tw"><table id="t-sell"></table></div>
+        </div>
+        <div class="card c12">
+          <h3>Worst-performing products</h3>
+          <p class="sub">Minimum 20 units sold. Without that floor this table fills with products that sold once and received one 1★ review — a sample of one, not a quality problem.</p>
+          <div class="tw"><table id="t-worst"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="p4">
+      <div class="phead">
+        <h2>Operations &amp; Delivery</h2>
+        <p>Delivery performance and what it costs. This page carries the finding the whole platform is
+        built on.</p>
+      </div>
+      <div class="kpis" id="k4"></div>
+      <div class="grid">
+        <div class="card c12">
+          <h3>What a late delivery costs</h3>
+          <p class="sub">Negative-review rate and average score by delivery outcome. Two charts on one shared axis rather than one dual-axis chart, so neither scale distorts the other.</p>
+          <div id="c-delay"></div>
+          <div class="callout" style="margin-top:16px">
+            <b>Delivery risk is revenue risk.</b> Negative reviews climb from <b>8.9%</b> when an order
+            arrives 10+ days early to <b>80.0%</b> when it is 8–15 days late — monotonically, across
+            95,824 reviewed orders. A late delivery costs roughly <b>2 full stars</b>. This is why the
+            platform predicts delays before they happen rather than reporting them afterwards.
+          </div>
+        </div>
+        <div class="card c5">
+          <h3>Delivery time by region</h3>
+          <p class="sub">Average days from purchase to delivery.</p>
+          <div id="c-reg"></div>
+        </div>
+        <div class="card c7">
+          <h3>Late-delivery rate over time</h3>
+          <p class="sub">Share of delivered orders arriving after the promised date.</p>
+          <div id="c-late"></div>
+        </div>
+        <div class="card c12">
+          <h3>Delivery performance by state</h3>
+          <p class="sub">States with at least 200 delivered orders, slowest first.</p>
+          <div class="tw"><table id="t-del"></table></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+__DATA_PLACEHOLDER__
+
+const brl = v => v >= 1e6 ? "R$" + (v/1e6).toFixed(1) + "M"
+               : v >= 1e3 ? "R$" + Math.round(v/1e3) + "K"
+               : "R$" + v.toFixed(0);
+const brlFull = v => "R$ " + v.toLocaleString("en-US", {maximumFractionDigits:0});
+const num = v => v.toLocaleString("en-US");
+const pct = v => v.toFixed(1) + "%";
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function kpis(el, items){
+  document.getElementById(el).innerHTML = items.map(k => `
+    <div class="kpi ${k.tone||''}">
+      <span class="lab">${k.lab}</span>
+      <span class="val num">${k.val}</span>
+      <span class="note">${k.note||''}</span>
+    </div>`).join("");
+}
+
+function hbar(el, rows, o){
+  const max = Math.max(...rows.map(r => r[o.v]));
+  document.getElementById(el).innerHTML = `<div class="bars">` + rows.map(r => {
+    const color = o.color ? o.color(r) : "var(--c1)";
+    return `<div class="bar-row">
+      <span class="bar-lab" title="${r[o.k]}">${o.klab ? o.klab(r) : r[o.k]}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${Math.max(1.2, 100*r[o.v]/max)}%;background:${color}"></span></span>
+      <span class="bar-val">${o.fmt(r[o.v], r)}</span>
+    </div>`;
+  }).join("") + `</div>`;
+}
+
+function line(el, rows, o){
+  const W = 720, H = o.h || 230, P = {t:14, r:16, b:26, l:52};
+  const vals = rows.map(r => r[o.v]);
+  const max = o.max !== undefined ? o.max : Math.max(...vals) * 1.15;
+  const n = rows.length;
+  const x = i => P.l + i * (W - P.l - P.r) / Math.max(1, n - 1);
+  const y = v => H - P.b - (v / max) * (H - P.t - P.b);
+
+  const ticks = 4, gl = [], lb = [];
+  for (let i = 0; i <= ticks; i++){
+    const v = max * i / ticks, yy = y(v);
+    gl.push(`<line class="gl" x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}"/>`);
+    lb.push(`<text class="ax" x="${P.l-8}" y="${yy+3.5}" text-anchor="end">${o.yfmt(v)}</text>`);
+  }
+
+  let bands = "";
+  if (o.bands) o.bands.forEach(b => {
+    const i0 = rows.findIndex(r => r[o.k] >= b.from), i1raw = rows.map(r => r[o.k]).lastIndexOf(b.to);
+    const a = b.from ? x(i0 >= 0 ? i0 : 0) : P.l;
+    const z = b.to ? x(i1raw >= 0 ? i1raw : n-1) : W - P.r;
+    if (z > a) bands += `<rect class="band" x="${a}" y="${P.t}" width="${z-a}" height="${H-P.t-P.b}" opacity=".7"/>
+      <text class="bandtx" x="${(a+z)/2}" y="${P.t+14}" text-anchor="middle">${b.label}</text>`;
+  });
+
+  const path = rows.map((r,i) => `${i?"L":"M"}${x(i).toFixed(1)},${y(r[o.v]).toFixed(1)}`).join("");
+  const area = path + `L${x(n-1)},${H-P.b}L${x(0)},${H-P.b}Z`;
+  const stroke = o.color || "var(--c1)";
+
+  const every = Math.max(1, Math.ceil(n / 8));
+  const xl = rows.map((r,i) => i % every === 0 || i === n-1
+    ? `<text class="ax" x="${x(i)}" y="${H-8}" text-anchor="middle">${o.xfmt(r[o.k])}</text>` : "").join("");
+
+  const pk = vals.indexOf(Math.max(...vals));
+  const peak = `<circle class="dot" cx="${x(pk)}" cy="${y(vals[pk])}" r="4" fill="var(--surface)" stroke="${stroke}"/>
+    <text class="ax" x="${x(pk)}" y="${y(vals[pk])-11}" text-anchor="middle" style="fill:var(--ink);font-weight:650">${o.yfmt(vals[pk])}</text>`;
+
+  document.getElementById(el).innerHTML =
+   `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria||''}">
+      ${bands}${gl.join("")}
+      <path d="${area}" fill="${stroke}" opacity=".07"/>
+      <path class="ser" d="${path}" stroke="${stroke}"/>
+      ${peak}${lb.join("")}${xl}
+    </svg>`;
+}
+
+function cols(el, rows, o){
+  const W = 720, H = o.h || 200, P = {t:20, r:8, b:44, l:52};
+  const max = Math.max(...rows.map(r => r[o.v])) * 1.14;
+  const n = rows.length, bw = (W - P.l - P.r) / n;
+  const y = v => H - P.b - (v / max) * (H - P.t - P.b);
+
+  const gl = [], lb = [];
+  for (let i = 0; i <= 4; i++){
+    const v = max*i/4, yy = y(v);
+    gl.push(`<line class="gl" x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}"/>`);
+    lb.push(`<text class="ax" x="${P.l-8}" y="${yy+3.5}" text-anchor="end">${o.yfmt(v)}</text>`);
+  }
+  const bars = rows.map((r,i) => {
+    const h = Math.max(1, H - P.b - y(r[o.v])), xx = P.l + i*bw + bw*0.16;
+    const c = o.color ? o.color(r) : "var(--c1)";
+    return `<rect x="${xx}" y="${y(r[o.v])}" width="${bw*0.68}" height="${h}" rx="3" fill="${c}"/>
+      <text class="ax" x="${xx+bw*0.34}" y="${y(r[o.v])-6}" text-anchor="middle" style="font-size:10px">${o.vfmt(r[o.v])}</text>`;
+  }).join("");
+  const xl = rows.map((r,i) =>
+    `<text class="ax" x="${P.l+i*bw+bw*0.5}" y="${H-26}" text-anchor="middle" style="font-size:10px">${o.xfmt(r[o.k])}</text>
+     ${o.xsub ? `<text class="ax" x="${P.l+i*bw+bw*0.5}" y="${H-12}" text-anchor="middle" style="font-size:9.5px;opacity:.75">${o.xsub(r)}</text>` : ""}`).join("");
+
+  document.getElementById(el).innerHTML =
+   `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria||''}">
+      ${gl.join("")}${bars}${lb.join("")}${xl}
+    </svg>`;
+}
+
+function table(el, rows, colsDef){
+  const t = document.getElementById(el);
+  t.innerHTML =
+    `<thead><tr>${colsDef.map(c => `<th class="${c.r?'r':''}">${c.h}</th>`).join("")}</tr></thead>
+     <tbody>${rows.map(r => `<tr>${colsDef.map(c =>
+        `<td class="${c.r?'r':''} ${c.cls||''}">${c.f(r)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+}
+
+const K = DATA.kpis;
+
+kpis("k1", [
+  {lab:"Total revenue", val:brlFull(K.total_revenue), note:"delivered orders only"},
+  {lab:"Total orders",  val:num(K.total_orders), note:num(K.delivered_orders)+" delivered", tone:"alt"},
+  {lab:"Customers",     val:num(K.total_customers), note:"unique people"},
+  {lab:"Avg order value", val:"R$ "+K.avg_order_value.toFixed(2), note:"per delivered order"},
+  {lab:"Avg rating",    val:K.avg_review_score.toFixed(2), note:"of 5.00", tone:"warn"},
+  {lab:"On-time delivery", val:K.on_time_pct.toFixed(1)+"%", note:K.avg_delivery_days+" days average", tone:"good"},
+]);
+
+const MT = DATA.monthly_trend;
+line("c-rev", MT, {
+  k:"calendar_month", v:"revenue", h:250,
+  yfmt:brl, xfmt:m => m.slice(2).replace("-","/"),
+  aria:"Monthly revenue trend",
+  bands:[{from:"2016-09", to:"2016-12", label:"pilot"},{from:"2018-09", to:"2018-09", label:"partial"}]
+});
+line("c-ord", MT, {
+  k:"calendar_month", v:"orders", h:250, color:"var(--c2)",
+  yfmt:v => v >= 1000 ? (v/1000).toFixed(1)+"K" : Math.round(v), xfmt:m => m.slice(2).replace("-","/"),
+  aria:"Monthly delivered orders",
+  bands:[{from:"2016-09", to:"2016-12", label:"pilot"},{from:"2018-09", to:"2018-09", label:"partial"}]
+});
+hbar("c-cat", DATA.category_revenue, {
+  k:"product_category", v:"revenue", fmt:brl,
+  klab:r => r.product_category.replace(/_/g," ")
+});
+table("t-prod", DATA.top_products, [
+  {h:"Product", f:r => `<span class="mono">${r.product}</span>`},
+  {h:"Category", f:r => r.product_category.replace(/_/g," ")},
+  {h:"Units", r:1, f:r => `<span class="num">${num(r.units_sold)}</span>`},
+  {h:"Revenue", r:1, f:r => `<span class="num">${brlFull(r.revenue)}</span>`},
+]);
+
+const SEG = DATA.segments;
+kpis("k2", [
+  {lab:"Total customers", val:num(K.total_customers), note:"unique people"},
+  {lab:"Repeat rate", val:K.repeat_rate_pct.toFixed(1)+"%", note:"2,801 of 93,358", tone:"crit"},
+  {lab:"Avg customer value", val:"R$ 165.17", note:"lifetime, delivered"},
+  {lab:"Repeat value multiple", val:"1.92×", note:"R$308.53 vs R$160.73", tone:"good"},
+  {lab:"Segments", val:String(SEG.length), note:"RFM-based"},
+  {lab:"Champions", val:num(SEG.find(s => s.segment === "Champions").customers), note:"highest value + frequency", tone:"alt"},
+]);
+hbar("c-seg", [...SEG].sort((a,b) => b.customers - a.customers), {
+  k:"segment", v:"customers", fmt:v => num(v),
+  color:r => r.segment.includes("Risk") ? "var(--crit)" : r.segment === "Champions" ? "var(--good)" : "var(--c1)"
+});
+hbar("c-segrev", SEG, {
+  k:"segment", v:"revenue", fmt:brl,
+  color:r => r.segment.includes("Risk") ? "var(--crit)" : r.segment === "Champions" ? "var(--good)" : "var(--c1)"
+});
+cols("c-freq", DATA.frequency_dist.filter(r => r.orders_placed <= 5), {
+  k:"orders_placed", v:"customers", h:210,
+  yfmt:v => v >= 1000 ? Math.round(v/1000)+"K" : Math.round(v),
+  vfmt:v => v >= 1000 ? (v/1000).toFixed(0)+"K" : v,
+  xfmt:v => v + (v === 1 ? " order" : " orders"),
+  color:r => r.orders_placed === 1 ? "var(--crit)" : "var(--c1)",
+  aria:"Purchase frequency distribution"
+});
+
+(function(){
+  const rf = DATA.rfm_distribution, mx = Math.max(...rf.map(r => r.customers));
+  let h = `<div class="hm"><div class="hm-h"></div>` +
+          [1,2,3,4,5].map(m => `<div class="hm-h">M${m}</div>`).join("");
+  for (let r = 5; r >= 1; r--){
+    h += `<div class="hm-h">R${r}</div>`;
+    for (let m = 1; m <= 5; m++){
+      const c = rf.find(x => x.r_score === r && x.m_score === m);
+      const v = c ? c.customers : 0, t = v / mx;
+      h += `<div class="hm-c" title="R${r} M${m}: ${num(v)} customers"
+             style="background:color-mix(in srgb, var(--c1) ${(8+t*88).toFixed(0)}%, var(--surface));
+                    color:${t > 0.45 ? "#fff" : "var(--ink-2)"}">${v ? (v/1000).toFixed(1)+"K" : "–"}</div>`;
+    }
+  }
+  document.getElementById("c-rfm").innerHTML = h + `</div>
+    <div class="legend"><span>R = recency score, M = monetary score · 5 is best</span></div>`;
+})();
+
+table("t-state", DATA.state_revenue.slice(0,12), [
+  {h:"State", f:r => `<b>${r.state}</b>`},
+  {h:"Region", f:r => r.region || "—"},
+  {h:"Orders", r:1, f:r => `<span class="num">${num(r.orders)}</span>`},
+  {h:"Revenue", r:1, f:r => `<span class="num">${brlFull(r.revenue)}</span>`},
+  {h:"Share", r:1, f:r => `<span class="num">${(100*r.revenue/DATA.kpis.total_revenue).toFixed(1)}%</span>`},
+]);
+
+const SH = DATA.seller_health, dormant = SH.find(s => s.is_dormant === 1), active = SH.find(s => s.is_dormant === 0);
+kpis("k3", [
+  {lab:"Products", val:num(K.total_products), note:"74 categories"},
+  {lab:"Sellers", val:num(K.total_sellers), note:num(active.sellers)+" active"},
+  {lab:"Dormant sellers", val:pct(100*dormant.sellers/(dormant.sellers+active.sellers)), note:"no sale in 90 days", tone:"crit"},
+  {lab:"Avg seller rating", val:"4.10", note:"active 4.21 · dormant 3.99", tone:"warn"},
+  {lab:"Top decile share", val:"66.3%", note:"297 sellers of 2,970", tone:"alt"},
+  {lab:"Negative reviews", val:K.negative_review_pct.toFixed(1)+"%", note:"1–2 star share", tone:"crit"},
+]);
+hbar("c-dec", DATA.seller_deciles, {
+  k:"revenue_decile", v:"revenue", fmt:brl,
+  klab:r => "Decile " + r.revenue_decile,
+  color:r => r.revenue_decile === 1 ? "var(--c2)" : "var(--c1)"
+});
+(function(){
+  const cr = DATA.category_rating;
+  const pick = [...cr.slice(0,4), ...cr.slice(-4)];
+  hbar("c-catrate", pick, {
+    k:"product_category", v:"avg_review_score", fmt:v => v.toFixed(2) + " ★",
+    klab:r => r.product_category.replace(/_/g," "),
+    color:r => r.avg_review_score >= 4.2 ? "var(--good)" : r.avg_review_score >= 3.8 ? "var(--c1)" : "var(--crit)"
+  });
+})();
+table("t-sell", DATA.top_sellers, [
+  {h:"Seller", f:r => `<span class="mono">${r.seller}</span>`},
+  {h:"State", f:r => r.state},
+  {h:"Orders", r:1, f:r => `<span class="num">${num(r.total_orders)}</span>`},
+  {h:"Revenue", r:1, f:r => `<span class="num">${brlFull(r.total_revenue)}</span>`},
+  {h:"Rating", r:1, f:r => `<span class="num">${r.avg_review ? r.avg_review.toFixed(2) : "—"}</span>`},
+  {h:"Late", r:1, f:r => `<span class="num">${r.late_pct.toFixed(1)}%</span>`},
+  {h:"Delivery", r:1, f:r => `<span class="num">${r.avg_delivery_days.toFixed(1)}d</span>`},
+  {h:"Status", f:r => r.is_dormant
+      ? `<span class="pill p-crit">Dormant</span>` : `<span class="pill p-good">Active</span>`},
+]);
+table("t-worst", DATA.worst_products, [
+  {h:"Product", f:r => `<span class="mono">${r.product}</span>`},
+  {h:"Category", f:r => r.product_category.replace(/_/g," ")},
+  {h:"Units", r:1, f:r => `<span class="num">${num(r.units_sold)}</span>`},
+  {h:"Rating", r:1, f:r => `<span class="num">${r.avg_review_score.toFixed(2)}</span>`},
+  {h:"Late", r:1, f:r => `<span class="num">${r.late_pct.toFixed(1)}%</span>`},
+  {h:"Likely cause", f:r => {
+      const bad = r.avg_review_score < 2.5, slow = r.late_pct > 15;
+      return bad && slow ? `<span class="pill p-crit">quality + logistics</span>`
+           : bad         ? `<span class="pill p-crit">product quality</span>`
+           : slow        ? `<span class="pill p-warn">logistics</span>`
+                         : `<span class="pill p-mute">review</span>`;
+  }},
+]);
+
+kpis("k4", [
+  {lab:"Avg delivery time", val:K.avg_delivery_days + " days", note:"purchase to doorstep"},
+  {lab:"On-time rate", val:K.on_time_pct.toFixed(1)+"%", note:"vs promised date", tone:"good"},
+  {lab:"Late deliveries", val:(100-K.on_time_pct).toFixed(1)+"%", note:"6,534 orders", tone:"crit"},
+  {lab:"Avg vs promise", val:"−11.2 days", note:"promise 23.7 · deliver 12.1", tone:"alt"},
+  {lab:"Slowest region", val:"22.1 days", note:"Norte · 2.1× Sudeste", tone:"warn"},
+  {lab:"Negative reviews", val:K.negative_review_pct.toFixed(1)+"%", note:"14,575 orders", tone:"crit"},
+]);
+(function(){
+  const d = DATA.delay_impact;
+  const short = s => s.replace(" days","d").replace("10+d early","10+d early").replace(" late"," late");
+  cols("c-delay", d, {
+    k:"delivery_outcome", v:"negative_pct", h:230,
+    yfmt:v => v.toFixed(0)+"%", vfmt:v => v.toFixed(1)+"%",
+    xfmt:short, xsub:r => r.avg_review_score.toFixed(2)+" ★",
+    color:r => r.negative_pct > 60 ? "var(--crit)"
+             : r.negative_pct > 25 ? "var(--warn)" : "var(--good)",
+    aria:"Negative review rate by delivery outcome"
+  });
+  document.getElementById("c-delay").insertAdjacentHTML("beforeend",
+    `<div class="legend">
+       <span><span class="sw" style="background:var(--good)"></span>on time or early</span>
+       <span><span class="sw" style="background:var(--warn)"></span>slightly late</span>
+       <span><span class="sw" style="background:var(--crit)"></span>badly late</span>
+       <span>Second line under each bar is the average review score for that group.</span>
+     </div>`);
+})();
+hbar("c-reg", DATA.delivery_by_region, {
+  k:"region", v:"avg_delivery_days", fmt:v => v.toFixed(1) + " days",
+  color:r => r.avg_delivery_days > 18 ? "var(--crit)" : r.avg_delivery_days > 13 ? "var(--warn)" : "var(--good)"
+});
+line("c-late", DATA.late_trend.filter(r => r.calendar_month >= "2017-01" && r.calendar_month <= "2018-08"), {
+  k:"calendar_month", v:"late_pct", h:230, color:"var(--crit)",
+  yfmt:v => v.toFixed(0)+"%", xfmt:m => m.slice(2).replace("-","/"),
+  aria:"Late delivery rate over time"
+});
+table("t-del", DATA.delivery_by_state.slice(0,12), [
+  {h:"State", f:r => `<b>${r.state}</b>`},
+  {h:"Region", f:r => r.region || "—"},
+  {h:"Orders", r:1, f:r => `<span class="num">${num(r.delivered_orders)}</span>`},
+  {h:"Avg days", r:1, f:r => `<span class="num">${Number(r.avg_delivery_days).toFixed(1)}</span>`},
+  {h:"Late", r:1, f:r => `<span class="num">${Number(r.late_pct).toFixed(1)}%</span>`},
+  {h:"Rating", r:1, f:r => `<span class="num">${Number(r.avg_review_score).toFixed(2)}</span>`},
+  {h:"Grade", f:r => {
+      const d = Number(r.avg_delivery_days);
+      return d > 20 ? `<span class="pill p-crit">critical</span>`
+           : d > 15 ? `<span class="pill p-warn">slow</span>`
+           : d > 10 ? `<span class="pill p-mute">acceptable</span>`
+                    : `<span class="pill p-good">fast</span>`;
+  }},
+]);
+
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x === t)));
+  document.querySelectorAll(".page").forEach(p => p.classList.toggle("on", p.id === t.dataset.page));
+  window.scrollTo({top:0, behavior:"instant"});
+}));
+</script>
